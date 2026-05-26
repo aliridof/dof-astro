@@ -1,0 +1,8 @@
+{
+  "name": "Remix: DOF - ASTRO - STABLE",
+  "description": "A precise astronomical ephemeris calculator using Swiss Ephemeris.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

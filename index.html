@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeMap — Zenith & Planet Mapper</title>
+    
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Geist Variable', 'sans-serif'],
+              mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body class="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900">
+
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <header class="mb-4 border-b border-slate-200 pb-4 flex flex-col sm:flex-row justify-between sm:items-end gap-4 z-10 relative">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-black text-slate-950 tracking-tighter uppercase font-mono">Time<span class="text-slate-900">Map</span></h1>
+        <p class="text-xs text-slate-500 mt-1.5 uppercase tracking-widest font-mono">Lacak titik Zenith, Nadir, secara real-time</p>
+      </div>
+    </header>
+
+    <!-- Simulation/Time Banner -->
+    <div id="simulation-banner" class="transition-all duration-300"></div>
+
+    <!-- Astro Map View -->
+    <div class="w-full h-[60vh] md:h-[550px] rounded-2xl overflow-hidden shadow-lg border-2 border-slate-200/60 relative bg-slate-50 z-0 transition-all duration-500 hover:shadow-xl group" id="map-container">
+        <div id="map" class="absolute inset-0 w-full h-full transition-opacity duration-500"></div>
+        <div class="absolute inset-0 pointer-events-none rounded-2xl ring-1 ring-inset ring-slate-900/5 z-[9999]"></div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+      
+      <!-- Left Column: Controls (Personas & Simulation) -->
+      <div class="lg:col-span-1 shadow-sm flex flex-col border border-slate-200 overflow-hidden bg-white rounded-xl">
+        <!-- Tab Switcher (Filled by ui.js) -->
+        <div class="flex bg-slate-100/80 border-b border-slate-200/60 p-1 gap-1" id="tab-switcher">
+        </div>
+
+        <div class="p-4 flex-1 space-y-4 pb-5 pt-4" id="sidebar-content">
+            <!-- Populated dynamically via ui.js -->
+        </div>
+      </div>
+
+      <!-- Right Column: Celestial & Terrestrial Bodies -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- DATA - PERSONA - TERRESTRIAL -->
+        <div class="shadow-sm rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div class="p-6" id="data-persona-terrestrial">
+              <h2 class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-4 font-mono">DATA - PERSONA - TERRESTRIAL</h2>
+              <div id="terrestrial-list" class="grid grid-cols-1 gap-3.5">
+                  <!-- Populated dynamically via ui.js -->
+              </div>
+          </div>
+        </div>
+
+        <!-- DATA - PERSONA - CELESTIAL -->
+        <div class="shadow-sm rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div class="p-6" id="data-persona-celestial">
+              <h2 class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-4 font-mono">DATA - PERSONA - CELESTIAL</h2>
+              <div id="celestial-list" class="grid grid-cols-1 gap-3.5">
+                  <!-- Populated dynamically via ui.js -->
+              </div>
+          </div>
+        </div>
+
+        <!-- DATA - OBJECT -->
+        <div class="shadow-sm rounded-xl border border-slate-200 bg-white overflow-hidden flex flex-col">
+          <div class="p-6" id="data-object">
+              <h2 class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-4 font-mono">DATA - OBJECT</h2>
+              <div id="bodies-list" class="grid grid-cols-1 gap-3.5">
+                  <!-- Populated by ui.js -->
+              </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Add Persona Modal -->
+  <div id="persona-modal" class="tm-modal-overlay">
+      <!-- Modal Content (Filled by ui.js) -->
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Luxon JS -->
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+  
+  <!-- Main Application Entry (ES Module) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
