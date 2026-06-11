@@ -573,7 +573,7 @@ function renderTerrestrial() {
     div.innerHTML = `
             <div class="w-full flex items-center justify-between gap-3">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-full border-2 ${item.symbol === 'TZ' ? 'bg-white text-slate-950 border-slate-950' : 'bg-slate-950 dark:bg-white text-white dark:text-slate-950 border-white dark:border-slate-950'} font-extrabold font-mono text-xs shrink-0 select-none flex items-center justify-center shadow-md">
+                    <div class="w-11 h-11 rounded-full border-2 ${item.symbol === "TZ" ? "bg-white text-slate-950 border-slate-950" : "bg-slate-950 dark:bg-white text-white dark:text-slate-950 border-white dark:border-slate-950"} font-extrabold font-mono text-xs shrink-0 select-none flex items-center justify-center shadow-md">
                         <span>${item.symbol}</span>
                     </div>
                     <div>
@@ -586,15 +586,19 @@ function renderTerrestrial() {
                         <i data-feather="info" class="w-3.5 h-3.5"></i>
                     </button>
                     <div class="card-toggle-trigger cursor-pointer select-none" data-id="${item.id}">
-                        ${isActive ? `
+                        ${
+                          isActive
+                            ? `
                             <div class="px-2.5 h-8 bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white font-black text-[10px] tracking-wider transition-all duration-300 rounded-none shadow-sm flex items-center justify-center gap-1 min-w-[56px] hover:bg-neutral-900 dark:hover:bg-neutral-100">
                                 <span class="w-1 h-1 bg-white dark:bg-black rounded-full inline-block animate-pulse"></span> ON
                             </div>
-                        ` : `
+                        `
+                            : `
                             <div class="px-2.5 h-8 bg-transparent text-neutral-400 dark:text-neutral-500 border border-neutral-300 dark:border-neutral-800 font-black text-[10px] tracking-wider transition-all duration-300 rounded-none flex items-center justify-center gap-1 min-w-[56px] hover:bg-neutral-50/50 dark:hover:bg-neutral-950/50 hover:text-black dark:hover:text-white hover:border-black dark:hover:border-white">
                                 <span class="w-1 h-1 bg-neutral-300 dark:bg-neutral-750 rounded-full inline-block"></span> OFF
                             </div>
-                        `}
+                        `
+                        }
                     </div>
                 </div>
             </div>
@@ -661,7 +665,7 @@ function renderCelestial() {
     div.innerHTML = `
             <div class="w-full flex items-center justify-between gap-3">
                 <div class="flex items-center gap-4">
-                    <div class="w-11 h-11 rounded-full border-2 ${item.symbol === 'CZ' ? 'bg-white text-slate-950 border-slate-950' : 'bg-slate-950 dark:bg-white text-white dark:text-slate-950 border-white dark:border-slate-950'} font-extrabold font-mono text-xs shrink-0 select-none flex items-center justify-center shadow-md">
+                    <div class="w-11 h-11 rounded-full border-2 ${item.symbol === "CZ" ? "bg-white text-slate-950 border-slate-950" : "bg-slate-950 dark:bg-white text-white dark:text-slate-950 border-white dark:border-slate-950"} font-extrabold font-mono text-xs shrink-0 select-none flex items-center justify-center shadow-md">
                         <span>${item.symbol}</span>
                     </div>
                     <div>
@@ -674,15 +678,19 @@ function renderCelestial() {
                         <i data-feather="info" class="w-3.5 h-3.5"></i>
                     </button>
                     <div class="card-toggle-trigger cursor-pointer select-none" data-id="${item.id}">
-                        ${isActive ? `
+                        ${
+                          isActive
+                            ? `
                             <div class="px-2.5 h-8 bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white font-black text-[10px] tracking-wider transition-all duration-300 rounded-none shadow-sm flex items-center justify-center gap-1 min-w-[56px] hover:bg-neutral-900 dark:hover:bg-neutral-100">
                                 <span class="w-1 h-1 bg-white dark:bg-black rounded-full inline-block animate-pulse"></span> ON
                             </div>
-                        ` : `
+                        `
+                            : `
                             <div class="px-2.5 h-8 bg-transparent text-neutral-400 dark:text-neutral-500 border border-neutral-300 dark:border-neutral-800 font-black text-[10px] tracking-wider transition-all duration-300 rounded-none flex items-center justify-center gap-1 min-w-[56px] hover:bg-neutral-50/50 dark:hover:bg-neutral-950/50 hover:text-black dark:hover:text-white hover:border-black dark:hover:border-white">
                                 <span class="w-1 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full inline-block"></span> OFF
                             </div>
-                        `}
+                        `
+                        }
                     </div>
                 </div>
             </div>
@@ -782,15 +790,19 @@ function renderBodies() {
                             <i data-feather="info" class="w-3.5 h-3.5"></i>
                         </button>
                         <div class="card-toggle-trigger cursor-pointer select-none" data-id="${b.id}">
-                            ${isActive ? `
+                            ${
+                              isActive
+                                ? `
                                 <div class="px-2.5 h-8 bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white font-black text-[10px] tracking-wider transition-all duration-300 rounded-none shadow-sm flex items-center justify-center gap-1 min-w-[56px] hover:bg-neutral-900 dark:hover:bg-neutral-100">
                                     <span class="w-1.5 h-1.5 bg-white dark:bg-black rounded-full inline-block animate-pulse"></span> ON
                                 </div>
-                            ` : `
+                            `
+                                : `
                                 <div class="px-2.5 h-8 bg-transparent text-neutral-400 dark:text-neutral-500 border border-neutral-300 dark:border-neutral-800 font-black text-[10px] tracking-wider transition-all duration-300 rounded-none flex items-center justify-center gap-1 min-w-[56px] hover:bg-neutral-50/50 dark:hover:bg-neutral-950/50 hover:text-black dark:hover:text-white hover:border-black dark:hover:border-white">
                                     <span class="w-1.5 h-1.5 bg-neutral-300 dark:bg-neutral-700 rounded-full inline-block"></span> OFF
                                 </div>
-                            `}
+                            `
+                            }
                         </div>
                     </div>
                 </div>
@@ -836,8 +848,11 @@ function renderBodies() {
     window.feather.replace();
   }
   updateBodyStats();
-  if (typeof renderAspectMatrices === "function" && state.mapMode === "MATRIX") {
-    renderAspectMatrices();
+  if (
+    typeof updateAspectMatrices === "function" &&
+    state.mapMode === "MATRIX"
+  ) {
+    updateAspectMatrices();
   }
 }
 
@@ -883,7 +898,8 @@ function updateTimeUI() {
   // Playback speed label
   let speedLabel = "Jeda";
   if (state.isPlaying) {
-    const directionWord = state.playDirection === "BACKWARD" ? "MUNDUR" : "MAJU";
+    const directionWord =
+      state.playDirection === "BACKWARD" ? "MUNDUR" : "MAJU";
     if (state.speed === 1) {
       speedLabel = `1 dtk / dtk (${directionWord})`;
     } else {
@@ -1084,10 +1100,10 @@ function updateTimeUI() {
                             <div class="flex flex-col gap-1.5">
                                 <span class="text-[9px] font-mono font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest block font-sans">1. SUMBER WAKTU (TIME SOURCE)</span>
                                 <div class="grid grid-cols-2 gap-2">
-                                    <button id="sim-source-manual" class="h-9 text-[10px] font-extrabold uppercase tracking-wider border rounded-none transition-all flex items-center justify-center gap-1 cursor-pointer ${state.timeSourceMode === 'MANUAL' ? 'bg-black dark:bg-white text-white dark:text-black border-transparent' : 'bg-transparent border-black dark:border-white text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900'}" title="Manual Subject Clock">
+                                    <button id="sim-source-manual" class="h-9 text-[10px] font-extrabold uppercase tracking-wider border rounded-none transition-all flex items-center justify-center gap-1 cursor-pointer ${state.timeSourceMode === "MANUAL" ? "bg-black dark:bg-white text-white dark:text-black border-transparent" : "bg-transparent border-black dark:border-white text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900"}" title="Manual Subject Clock">
                                         <i data-feather="user" class="w-3.5 h-3.5"></i> MANUAL (SUBJECT)
                                     </button>
-                                    <button id="sim-source-realtime" class="h-9 text-[10px] font-extrabold uppercase tracking-wider border rounded-none transition-all flex items-center justify-center gap-1 cursor-pointer ${state.timeSourceMode === 'REAL-TIME' ? 'bg-black dark:bg-white text-white dark:text-black border-transparent' : 'bg-transparent border-black dark:border-white text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900'}" title="Real-time World Clock">
+                                    <button id="sim-source-realtime" class="h-9 text-[10px] font-extrabold uppercase tracking-wider border rounded-none transition-all flex items-center justify-center gap-1 cursor-pointer ${state.timeSourceMode === "REAL-TIME" ? "bg-black dark:bg-white text-white dark:text-black border-transparent" : "bg-transparent border-black dark:border-white text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900"}" title="Real-time World Clock">
                                         <i data-feather="clock" class="w-3.5 h-3.5"></i> REAL-TIME
                                     </button>
                                 </div>
@@ -1243,7 +1259,7 @@ function updateTimeUI() {
       state.timeMachineEnabled = !state.timeMachineEnabled;
       state.isRealTime = !state.timeMachineEnabled;
       state.isPlaying = false;
-      
+
       if (state.timeMachineEnabled) {
         state.timeSourceMode = "MANUAL";
         const activeS =
@@ -1508,8 +1524,12 @@ function updateTimeUI() {
               : (offsetSecs > 0 ? "+" : "-") + timePieces.join(" ");
           if (scrubberIndicator) scrubberIndicator.innerText = displayName;
 
-          updateTimeUI();
-          updateMap();
+          if (typeof gameLoop === "function") {
+            gameLoop();
+          } else {
+            updateTimeUI();
+            updateMap();
+          }
         });
 
         scrubber.addEventListener("change", resetScrubber);
@@ -1523,8 +1543,12 @@ function updateTimeUI() {
           state.customDate = new Date(
             state.customDate.getTime() - state.speed * 1000,
           );
-          updateTimeUI();
-          updateMap();
+          if (typeof gameLoop === "function") {
+            gameLoop();
+          } else {
+            updateTimeUI();
+            updateMap();
+          }
         });
 
       document
@@ -1533,8 +1557,12 @@ function updateTimeUI() {
           state.customDate = new Date(
             state.customDate.getTime() + state.speed * 1000,
           );
-          updateTimeUI();
-          updateMap();
+          if (typeof gameLoop === "function") {
+            gameLoop();
+          } else {
+            updateTimeUI();
+            updateMap();
+          }
         });
     } else if (scrubberBlock) {
       // If scrubber block exists, update values
@@ -1762,4 +1790,245 @@ function updateBodyStats() {
   }
 }
 
+/**
+ * Renders the list of aspects inside column 2 (Identity Aspects).
+ */
+function renderAspectsConfig() {
+  const listContainer = document.getElementById("aspects-list-container");
+  if (!listContainer) return;
 
+  const aspects = getAspectsList();
+  if (aspects.length === 0) {
+    listContainer.innerHTML = `
+      <div class="border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/15 p-6 text-center select-none rounded-none">
+        <p class="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono uppercase tracking-wider mb-1">No Aspects Profiles</p>
+        <p class="text-[11px] text-neutral-400 dark:text-neutral-500 font-sans">Click + ADD ASPECT to configure a custom geometry.</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = "";
+  aspects.forEach((aspect) => {
+    html +=
+      typeof generateAspectCardHTML === "function"
+        ? generateAspectCardHTML(aspect)
+        : "";
+  });
+
+  listContainer.innerHTML = html;
+
+  // Replace Feather Icons in this new HTML
+  if (window.feather) window.feather.replace();
+
+  // Wire up events dynamically
+  listContainer.querySelectorAll(".aspect-toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
+      const aspectsList = getAspectsList();
+      const found = aspectsList.find((a) => a.id === id);
+      if (found) {
+        found.enabled = !found.enabled;
+        saveAspectsList(aspectsList);
+        renderAspectsConfig();
+
+        // Trigger global updates for aspects matrices & map representations
+        if (typeof renderAspectMatrices === "function") renderAspectMatrices();
+        if (typeof updateMap === "function") updateMap();
+      }
+    });
+  });
+
+  listContainer.querySelectorAll(".aspect-edit-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
+      const aspectsList = getAspectsList();
+      const found = aspectsList.find((a) => a.id === id);
+      if (found) {
+        const formPanel = document.getElementById("add-aspect-form-panel");
+        const form = document.getElementById("add-aspect-form");
+
+        // Populate the form with the aspect data
+        document.getElementById("new-aspect-id").value = found.id;
+        document.getElementById("new-aspect-name").value = found.name;
+        document.getElementById("new-aspect-angle").value = found.angle;
+        document.getElementById("new-aspect-orb").value = found.orb;
+        document.getElementById("new-aspect-symbol").value = found.symbol;
+        document.getElementById("new-aspect-color").value = found.color;
+        document.getElementById("new-aspect-sentiment").value =
+          found.sentiment || "";
+        document.getElementById("new-aspect-score").value =
+          found.score !== undefined ? found.score : "";
+
+        // Disable ID field for editing (or set a data attribute for tracking)
+        form.dataset.editId = found.id;
+
+        const titleEl = formPanel.querySelector("h3");
+        if (titleEl) titleEl.innerText = "Edit Aspect Profile";
+        const saveBtn = document.getElementById("save-aspect-btn");
+        if (saveBtn) saveBtn.innerText = "Update Profile";
+
+        // Show panel
+        formPanel.classList.remove("hidden");
+        // Scroll to form if needed
+        formPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    });
+  });
+
+  listContainer.querySelectorAll(".aspect-delete-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
+      let aspectsList = getAspectsList();
+      aspectsList = aspectsList.filter((a) => a.id !== id);
+      saveAspectsList(aspectsList);
+      renderAspectsConfig();
+
+      // Trigger global updates
+      if (typeof renderAspectMatrices === "function") renderAspectMatrices();
+      if (typeof updateMap === "function") updateMap();
+    });
+  });
+}
+
+/**
+ * Initializes listeners for adding aspects & panel visibility toggling.
+ */
+function initAspectsConfig() {
+  const addBtn = document.getElementById("add-aspect-btn");
+  const cancelBtn = document.getElementById("cancel-aspect-btn");
+  const formPanel = document.getElementById("add-aspect-form-panel");
+  const form = document.getElementById("add-aspect-form");
+  const saveBtn = document.getElementById("save-aspect-btn");
+
+  if (addBtn && formPanel) {
+    addBtn.addEventListener("click", () => {
+      if (!formPanel.classList.contains("hidden")) {
+        formPanel.classList.add("hidden");
+      } else {
+        form.reset();
+        delete form.dataset.editId;
+        const titleEl = formPanel.querySelector("h3");
+        if (titleEl) titleEl.innerText = "New Aspect Profile";
+        if (saveBtn) saveBtn.innerText = "Save Profile";
+        formPanel.classList.remove("hidden");
+      }
+    });
+  }
+
+  if (cancelBtn && formPanel) {
+    cancelBtn.addEventListener("click", () => {
+      formPanel.classList.add("hidden");
+      form.reset();
+      delete form.dataset.editId;
+    });
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", () => {
+      const idInput = document.getElementById("new-aspect-id");
+      const nameInput = document.getElementById("new-aspect-name");
+      const angleInput = document.getElementById("new-aspect-angle");
+      const orbInput = document.getElementById("new-aspect-orb");
+      const symbolInput = document.getElementById("new-aspect-symbol");
+      const colorInput = document.getElementById("new-aspect-color");
+      const sentimentInput = document.getElementById("new-aspect-sentiment");
+      const scoreInput = document.getElementById("new-aspect-score");
+
+      const id = idInput.value.trim().toUpperCase();
+      const name = nameInput.value.trim();
+      const angle = parseFloat(angleInput.value);
+      const orb = parseFloat(orbInput.value);
+      const symbol = symbolInput.value.trim();
+      const color = colorInput.value;
+      const sentiment = sentimentInput.value;
+      const score =
+        scoreInput.value !== "" ? parseFloat(scoreInput.value) : undefined;
+
+      // Validation
+      if (!id || !name || isNaN(angle) || isNaN(orb) || !symbol) {
+        alert("Mohon isi seluruh kolom input dengan valid!");
+        return;
+      }
+
+      if (angle < 0 || angle > 185) {
+        alert("Sudut aspek harus berada di antara 0 dan 185 derajat!");
+        return;
+      }
+
+      if (orb <= 0 || orb > 15) {
+        alert("Batas toleransi Orb harus di antara 0.1° dan 15°!");
+        return;
+      }
+
+      const aspectsList = getAspectsList();
+      const editingId = form.dataset.editId;
+
+      if (editingId) {
+        // Edit mode
+        const existingIndex = aspectsList.findIndex((a) => a.id === editingId);
+        if (existingIndex !== -1) {
+          // Allow changing ID if the new ID doesn't conflict with *another* aspect
+          if (id !== editingId && aspectsList.some((a) => a.id === id)) {
+            alert(
+              `ID Aspek '${id}' sudah terdaftar! Harap gunakan ID identik yang unik.`,
+            );
+            return;
+          }
+
+          aspectsList[existingIndex] = {
+            ...aspectsList[existingIndex],
+            id: id,
+            name: name,
+            angle: angle,
+            symbol: symbol,
+            color: color,
+            orb: orb,
+            sentiment: sentiment,
+            score: score,
+          };
+        }
+      } else {
+        // Add mode
+        const exists = aspectsList.some((a) => a.id === id);
+        if (exists) {
+          alert(
+            `ID Aspek '${id}' sudah terdaftar! Harap gunakan ID identik yang unik.`,
+          );
+          return;
+        }
+
+        const newAspect = {
+          id: id,
+          name: name,
+          angle: angle,
+          symbol: symbol,
+          color: color,
+          orb: orb,
+          sentiment: sentiment,
+          score: score,
+          enabled: true,
+          isCore: false,
+        };
+
+        aspectsList.push(newAspect);
+      }
+
+      saveAspectsList(aspectsList);
+
+      // Clear and hide
+      form.reset();
+      delete form.dataset.editId;
+      formPanel.classList.add("hidden");
+
+      // Rerender and sync
+      renderAspectsConfig();
+
+      if (typeof renderAspectMatrices === "function") renderAspectMatrices();
+      if (typeof updateMap === "function") updateMap();
+    });
+  }
+
+  // Initial Render
+  renderAspectsConfig();
+}

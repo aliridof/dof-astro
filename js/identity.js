@@ -1,28 +1,100 @@
 // js/identity.js
 
 /**
- * Global configurations and core aspects for identity matching.
+ * Default configurations for identity aspects.
  */
-const ASPECTS_CORE = [
-    { id: 'CONJ', name: 'Konjungsi', angle: 0, symbol: '☌', color: '#10b981' },   // Emerald Green
-    { id: 'SEXTILE', name: 'Sekstil', angle: 60, symbol: '⚹', color: '#3b82f6' },  // Blue
-    { id: 'QUINTILE', name: 'Kuintil', angle: 72, symbol: 'Q', color: '#a855f7' },  // Purple
-    { id: 'SQUARE', name: 'Kuadrat', angle: 90, symbol: '□', color: '#ef4444' },   // Red
-    { id: 'TRINE', name: 'Trigon', angle: 120, symbol: '△', color: '#f59e0b' },   // Amber Orange
-    { id: 'OPPO', name: 'Oposisi', angle: 180, symbol: '☍', color: '#64748b' }    // Slate Gray
+const DEFAULT_ASPECTS = [
+  {
+    id: "CONJ",
+    name: "Konjungsi",
+    angle: 0,
+    symbol: "☌",
+    color: "#10b981",
+    enabled: true,
+    isCore: true,
+    orb: 3.5,
+  }, // Emerald Green
+  {
+    id: "SEXTILE",
+    name: "Sekstil",
+    angle: 60,
+    symbol: "⚹",
+    color: "#3b82f6",
+    enabled: true,
+    isCore: true,
+    orb: 3.0,
+  }, // Blue
+  {
+    id: "QUINTILE",
+    name: "Kuintil",
+    angle: 72,
+    symbol: "Q",
+    color: "#a855f7",
+    enabled: true,
+    isCore: true,
+    orb: 2.0,
+  }, // Purple
+  {
+    id: "SQUARE",
+    name: "Kuadrat",
+    angle: 90,
+    symbol: "□",
+    color: "#ef4444",
+    enabled: true,
+    isCore: true,
+    orb: 3.0,
+  }, // Red
+  {
+    id: "TRINE",
+    name: "Trigon",
+    angle: 120,
+    symbol: "△",
+    color: "#f59e0b",
+    enabled: true,
+    isCore: true,
+    orb: 3.0,
+  }, // Amber Orange
+  {
+    id: "OPPO",
+    name: "Oposisi",
+    angle: 180,
+    symbol: "☍",
+    color: "#64748b",
+    enabled: true,
+    isCore: true,
+    orb: 3.5,
+  }, // Slate Gray
 ];
 
-const defaultOrbConfig = {
-    mode: 'default',
-    default_value: 3.5, // Default orb threshold (dalam derajat)
-    custom_values: {
-        'CONJ': 3.5,
-        'SEXTILE': 3.0,
-        'QUINTILE': 2.0,
-        'SQUARE': 3.0,
-        'TRINE': 3.0,
-        'OPPO': 3.5
+function getAspectsList() {
+  const saved = localStorage.getItem("identity_aspects_list");
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      console.error("Error parsing saved aspects list:", e);
     }
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_ASPECTS));
+}
+
+function saveAspectsList(list) {
+  localStorage.setItem("identity_aspects_list", JSON.stringify(list));
+}
+
+const ASPECTS_CORE = DEFAULT_ASPECTS;
+
+const defaultOrbConfig = {
+  mode: "default",
+  default_value: 3.5, // Default orb threshold (dalam derajat)
+  custom_values: {
+    CONJ: 3.5,
+    SEXTILE: 3.0,
+    QUINTILE: 2.0,
+    SQUARE: 3.0,
+    TRINE: 3.0,
+    OPPO: 3.5,
+  },
 };
 
 /**
@@ -33,12 +105,12 @@ const defaultOrbConfig = {
  * @returns {number} Nilai ORB dalam derajat
  */
 function getOrb(aspect_id, config = defaultOrbConfig) {
-    if (!config) return 3.5;
-    if (config.mode === 'default') {
-        return config.default_value;
-    }
-    const customValue = config.custom_values ? config.custom_values[aspect_id] : undefined;
-    return (customValue !== undefined) ? customValue : config.default_value;
+  const list = getAspectsList();
+  const aspect = list.find((a) => a.id === aspect_id);
+  if (aspect && aspect.orb !== undefined) {
+    return aspect.orb;
+  }
+  return 3.5;
 }
 
 /**
@@ -47,7 +119,7 @@ function getOrb(aspect_id, config = defaultOrbConfig) {
  * @returns {Array} Aspek kustom aktif
  */
 function getActiveCustomAspects() {
-    return (window.activeCustomAspects || []);
+  return getAspectsList().filter((a) => !a.isCore);
 }
 
 /**
@@ -58,32 +130,32 @@ function getActiveCustomAspects() {
  * @returns {Object|null} Objek aspek terpilih lengkap dengan deviasi, atau null
  */
 function matchAspect(theta, orbConfig = defaultOrbConfig) {
-    if (theta === null || theta === undefined) return null;
+  if (theta === null || theta === undefined) return null;
 
-    const allAspects = [...ASPECTS_CORE, ...getActiveCustomAspects()];
-    let bestAspect = null;
-    let bestDeviation = Infinity;
+  const allAspects = getAspectsList().filter((a) => a.enabled);
+  let bestAspect = null;
+  let bestDeviation = Infinity;
 
-    for (const aspect of allAspects) {
-        const orb = getOrb(aspect.id, orbConfig);
-        const deviation = Math.abs(theta - aspect.angle);
+  for (const aspect of allAspects) {
+    const orb = aspect.orb !== undefined ? aspect.orb : 3.5;
+    const deviation = Math.abs(theta - aspect.angle);
 
-        // Cek: (1) deviasi harus masuk di bawah batas ORB, (2) deviasi terkecil (Nearest-ORB)
-        if (deviation <= orb && deviation < bestDeviation) {
-            bestDeviation = deviation;
-            bestAspect = {
-                id: aspect.id,
-                name: aspect.name,
-                angle: aspect.angle,
-                symbol: aspect.symbol,
-                color: aspect.color,
-                orbUsed: orb,
-                deviation: deviation
-            };
-        }
+    // Cek: (1) deviasi harus masuk di bawah batas ORB, (2) deviasi terkecil (Nearest-ORB)
+    if (deviation <= orb && deviation < bestDeviation) {
+      bestDeviation = deviation;
+      bestAspect = {
+        id: aspect.id,
+        name: aspect.name,
+        angle: aspect.angle,
+        symbol: aspect.symbol,
+        color: aspect.color,
+        orbUsed: orb,
+        deviation: deviation,
+      };
     }
+  }
 
-    return bestAspect;
+  return bestAspect;
 }
 
 /**
@@ -95,23 +167,29 @@ function matchAspect(theta, orbConfig = defaultOrbConfig) {
  * @returns {number[]} Array vektor unit 3D [x, y, z]
  */
 function calculate3DVector(az, alt, entity) {
-    if (entity) {
-        if (entity.id === 'subject-terrestrial-zenith' || entity.id === 'subject-celestial-zenith') {
-            return [0, 0, 1]; // Zenith mengarah tepat ke atas
-        }
-        if (entity.id === 'subject-terrestrial-nadir' || entity.id === 'subject-celestial-nadir') {
-            return [0, 0, -1]; // Nadir mengarah tepat ke bawah
-        }
+  if (entity) {
+    if (
+      entity.id === "subject-terrestrial-zenith" ||
+      entity.id === "subject-celestial-zenith"
+    ) {
+      return [0, 0, 1]; // Zenith mengarah tepat ke atas
     }
+    if (
+      entity.id === "subject-terrestrial-nadir" ||
+      entity.id === "subject-celestial-nadir"
+    ) {
+      return [0, 0, -1]; // Nadir mengarah tepat ke bawah
+    }
+  }
 
-    const azRad = az * Math.PI / 180;
-    const altRad = alt * Math.PI / 180;
+  const azRad = (az * Math.PI) / 180;
+  const altRad = (alt * Math.PI) / 180;
 
-    const x = Math.cos(altRad) * Math.cos(azRad);
-    const y = Math.cos(altRad) * Math.sin(azRad);
-    const z = Math.sin(altRad);
+  const x = Math.cos(altRad) * Math.cos(azRad);
+  const y = Math.cos(altRad) * Math.sin(azRad);
+  const z = Math.sin(altRad);
 
-    return [x, y, z];
+  return [x, y, z];
 }
 
 /**
@@ -123,19 +201,19 @@ function calculate3DVector(az, alt, entity) {
  * @returns {number|null} Sudut pemisah dalam derajat [0, 180] atau null jika tidak valid
  */
 function calculateAngularSeparation(v1, v2) {
-    if (!v1 || !v2 || v1.length !== 3 || v2.length !== 3) return null;
-    
-    // Hasil perkalian dot product v1 . v2
-    const dot = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
-    
-    // Clamping untuk memotong presisi berlebih di luar jangkauan [-1.0, 1.0]
-    const dotClamped = Math.max(-1.0, Math.min(1.0, dot));
-    
-    // Hitung arccos untuk memperoleh sudut dalam radian
-    const rad = Math.acos(dotClamped);
-    
-    // Konversi ke derajat
-    return rad * 180 / Math.PI;
+  if (!v1 || !v2 || v1.length !== 3 || v2.length !== 3) return null;
+
+  // Hasil perkalian dot product v1 . v2
+  const dot = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+
+  // Clamping untuk memotong presisi berlebih di luar jangkauan [-1.0, 1.0]
+  const dotClamped = Math.max(-1.0, Math.min(1.0, dot));
+
+  // Hitung arccos untuk memperoleh sudut dalam radian
+  const rad = Math.acos(dotClamped);
+
+  // Konversi ke derajat
+  return (rad * 180) / Math.PI;
 }
 
 /**
@@ -147,37 +225,66 @@ function calculateAngularSeparation(v1, v2) {
  * @param {Object} [reqConfig] - Konfigurasi tambahan (Zodiac / Koordinat sistem)
  * @returns {Object|null} Statistik toposentris aktif (az, alt, ra, dec, zodiac, subLat, subLon, dll.)
  */
-function getActiveEntityStats(entityId, date = state.customDate, activeSubject = null, reqConfig = null) {
-    if (typeof ENTITIES === 'undefined') return null;
-    const entity = ENTITIES.find(e => e.id === entityId);
-    if (!entity) return null;
+function getActiveEntityStats(
+  entityId,
+  date = state.customDate,
+  activeSubject = null,
+  reqConfig = null,
+) {
+  if (typeof ENTITIES === "undefined") return null;
+  const entity = ENTITIES.find((e) => e.id === entityId);
+  if (!entity) return null;
 
-    const subject = activeSubject || (typeof state !== 'undefined' ? state.subjects.find(s => s.id === state.selectedSubjectId) || state.subjects[0] : null);
-    if (!subject) return null;
+  const subject =
+    activeSubject ||
+    (typeof state !== "undefined"
+      ? state.subjects.find((s) => s.id === state.selectedSubjectId) ||
+        state.subjects[0]
+      : null);
+  if (!subject) return null;
 
-    const config = reqConfig || { zodiac: state.zodiacConfig, coord: state.coordConfig };
-    let stats = null;
+  const config = reqConfig || {
+    zodiac: state.zodiacConfig,
+    coord: state.coordConfig,
+  };
+  let stats = null;
 
-    if (entity.type === 'OBJECT') {
-        if (typeof getBodyStats === 'function') {
-            stats = getBodyStats(entity.id, date, subject, config);
-        }
-    } else if (entity.type === 'TERRESTRIAL') {
-        if (typeof getTerrestrialStaticStats === 'function') {
-            stats = getTerrestrialStaticStats(entity.isZenith, date, subject, config);
-        }
-    } else if (entity.type === 'CELESTIAL') {
-        const anchorTime = typeof getSubjectAnchorTime === 'function' ? getSubjectAnchorTime(subject) : date;
-        if (typeof getCelestialCoordinates === 'function' && typeof getImaginaryPointStats === 'function') {
-            const coords = getCelestialCoordinates(subject.lat, subject.lng, anchorTime);
-            if (coords) {
-                const coordPoint = entity.isZenith ? coords.zenith : coords.nadir;
-                stats = getImaginaryPointStats(coordPoint.ra * 15, coordPoint.dec, date, subject, config);
-            }
-        }
+  if (entity.type === "OBJECT") {
+    if (typeof getBodyStats === "function") {
+      stats = getBodyStats(entity.id, date, subject, config);
     }
+  } else if (entity.type === "TERRESTRIAL") {
+    if (typeof getTerrestrialStaticStats === "function") {
+      stats = getTerrestrialStaticStats(entity.isZenith, date, subject, config);
+    }
+  } else if (entity.type === "CELESTIAL") {
+    const anchorTime =
+      typeof getSubjectAnchorTime === "function"
+        ? getSubjectAnchorTime(subject)
+        : date;
+    if (
+      typeof getCelestialCoordinates === "function" &&
+      typeof getImaginaryPointStats === "function"
+    ) {
+      const coords = getCelestialCoordinates(
+        subject.lat,
+        subject.lng,
+        anchorTime,
+      );
+      if (coords) {
+        const coordPoint = entity.isZenith ? coords.zenith : coords.nadir;
+        stats = getImaginaryPointStats(
+          coordPoint.ra * 15,
+          coordPoint.dec,
+          date,
+          subject,
+          config,
+        );
+      }
+    }
+  }
 
-    return stats;
+  return stats;
 }
 
 /**
@@ -188,9 +295,17 @@ function getActiveEntityStats(entityId, date = state.customDate, activeSubject =
  * @returns {boolean}
  */
 function isZenithSide(entity, isAbove) {
-    if (entity.id === 'subject-terrestrial-zenith' || entity.id === 'subject-celestial-zenith') return true;
-    if (entity.id === 'subject-terrestrial-nadir' || entity.id === 'subject-celestial-nadir') return false;
-    return isAbove;
+  if (
+    entity.id === "subject-terrestrial-zenith" ||
+    entity.id === "subject-celestial-zenith"
+  )
+    return true;
+  if (
+    entity.id === "subject-terrestrial-nadir" ||
+    entity.id === "subject-celestial-nadir"
+  )
+    return false;
+  return isAbove;
 }
 
 /**
@@ -201,90 +316,222 @@ function isZenithSide(entity, isAbove) {
  * @returns {boolean}
  */
 function isNadirSide(entity, isAbove) {
-    if (entity.id === 'subject-terrestrial-nadir' || entity.id === 'subject-celestial-nadir') return true;
-    if (entity.id === 'subject-terrestrial-zenith' || entity.id === 'subject-celestial-zenith') return false;
-    return !isAbove;
+  if (
+    entity.id === "subject-terrestrial-nadir" ||
+    entity.id === "subject-celestial-nadir"
+  )
+    return true;
+  if (
+    entity.id === "subject-terrestrial-zenith" ||
+    entity.id === "subject-celestial-zenith"
+  )
+    return false;
+  return !isAbove;
 }
 
 /**
  * Kelas Identity merepresentasikan hubungan interaksi spasial 3D / hubungan logis antara 2 buah entitas.
  */
 class Identity {
-    /**
-     * @param {Object|string} entityA - Entitas pertama (objek utuh atau ID)
-     * @param {Object|string} entityB - Entitas kedua (objek utuh atau ID)
-     * @param {Date} [date] - Waktu kalkulasi
-     * @param {Object} [activeSubject] - Subjek pengamat terestrial
-     * @param {Object} [orbConfig] - Konfigurasi ORB aspek
-     */
-    constructor(entityA, entityB, date = (typeof state !== 'undefined' ? state.customDate : new Date()), activeSubject = null, orbConfig = null) {
-        if (typeof ENTITIES === 'undefined') {
-            throw new Error('ENTITIES is not defined. Ensure js/entity.js is loaded.');
-        }
-
-        // Resolusi Entitas
-        this.entityA = typeof entityA === 'string' ? ENTITIES.find(e => e.id === entityA) : entityA;
-        this.entityB = typeof entityB === 'string' ? ENTITIES.find(e => e.id === entityB) : entityB;
-
-        if (!this.entityA || !this.entityB) {
-            throw new Error(`Invalid entities provided to Identity: ${entityA}, ${entityB}`);
-        }
-
-        this.date = date;
-        this.subject = activeSubject || (typeof state !== 'undefined' ? state.subjects.find(s => s.id === state.selectedSubjectId) || state.subjects[0] : null);
-        this.orbConfig = orbConfig || defaultOrbConfig;
-
-        // Tarik data koordinat rill toposentris aktif kedua objek
-        this.statsA = getActiveEntityStats(this.entityA.id, this.date, this.subject);
-        this.statsB = getActiveEntityStats(this.entityB.id, this.date, this.subject);
-
-        // Jika data koordinat tersedia, hitung sudut & kecocokan aspek
-        if (this.statsA && this.statsB) {
-            this.vecA = calculate3DVector(this.statsA.az, this.statsA.alt, this.entityA);
-            this.vecB = calculate3DVector(this.statsB.az, this.statsB.alt, this.entityB);
-            
-            // Hitung Sudut Pisah Terpendek (Great-Circle Path)
-            this.theta = calculateAngularSeparation(this.vecA, this.vecB);
-            
-            // Cari Aspek Aktif (Nearest-ORB)
-            this.aspect = matchAspect(this.theta, this.orbConfig);
-
-            const hThreshold = (typeof state !== 'undefined' && state.horizonThreshold !== undefined) ? state.horizonThreshold : 3.0;
-            this.isAboveA = this.statsA.alt >= hThreshold;
-            this.isAboveB = this.statsB.alt >= hThreshold;
-
-            this.isZenithSideA = isZenithSide(this.entityA, this.isAboveA);
-            this.isZenithSideB = isZenithSide(this.entityB, this.isAboveB);
-            this.isNadirSideA = isNadirSide(this.entityA, this.isAboveA);
-            this.isNadirSideB = isNadirSide(this.entityB, this.isAboveB);
-
-            // Klasifikasi Zona Kubah Belahan Langit
-            this.isZenithZone = this.isZenithSideA && this.isZenithSideB; // Hanya aktif jika kedua objek di Zenith
-            this.isNadirZone = this.isNadirSideA && this.isNadirSideB;   // Hanya aktif jika kedua objek di Nadir
-        } else {
-            this.vecA = null;
-            this.vecB = null;
-            this.theta = null;
-            this.aspect = null;
-            this.isZenithZone = false;
-            this.isNadirZone = false;
-        }
+  /**
+   * @param {Object|string} entityA - Entitas pertama (objek utuh atau ID)
+   * @param {Object|string} entityB - Entitas kedua (objek utuh atau ID)
+   * @param {Date} [date] - Waktu kalkulasi
+   * @param {Object} [activeSubject] - Subjek pengamat terestrial
+   * @param {Object} [orbConfig] - Konfigurasi ORB aspek
+   */
+  constructor(
+    entityA,
+    entityB,
+    date = typeof state !== "undefined" ? state.customDate : new Date(),
+    activeSubject = null,
+    orbConfig = null,
+  ) {
+    if (typeof ENTITIES === "undefined") {
+      throw new Error(
+        "ENTITIES is not defined. Ensure js/entity.js is loaded.",
+      );
     }
 
-    /**
-     * Mengembalikan status representasi apakah hubungan Identity aktif untuk tipe matriks tertentu.
-     *
-     * @param {string} matrixType - 'ZENITH', 'NADIR', or 'MATRIX' (general)
-     * @returns {boolean} True jika aktif di zona matriks tersebut
-     */
-    isActiveInMatrix(matrixType) {
-        if (matrixType === 'ZENITH') {
-            return this.isZenithZone;
-        }
-        if (matrixType === 'NADIR') {
-            return this.isNadirZone;
-        }
-        // General 'MATRIX' selalu aktif
-        return true;
+    // Resolusi Entitas
+    this.entityA =
+      typeof entityA === "string"
+        ? ENTITIES.find((e) => e.id === entityA)
+        : entityA;
+    this.entityB =
+      typeof entityB === "string"
+        ? ENTITIES.find((e) => e.id === entityB)
+        : entityB;
+
+    if (!this.entityA || !this.entityB) {
+      throw new Error(
+        `Invalid entities provided to Identity: ${entityA}, ${entityB}`,
+      );
     }
+
+    this.date = date;
+    this.subject =
+      activeSubject ||
+      (typeof state !== "undefined"
+        ? state.subjects.find((s) => s.id === state.selectedSubjectId) ||
+          state.subjects[0]
+        : null);
+    this.orbConfig = orbConfig || defaultOrbConfig;
+
+    // Tarik data koordinat rill toposentris aktif kedua objek
+    this.statsA = getActiveEntityStats(
+      this.entityA.id,
+      this.date,
+      this.subject,
+    );
+    this.statsB = getActiveEntityStats(
+      this.entityB.id,
+      this.date,
+      this.subject,
+    );
+
+    // Jika data koordinat tersedia, hitung sudut & kecocokan aspek
+    if (this.statsA && this.statsB) {
+      this.vecA = calculate3DVector(
+        this.statsA.az,
+        this.statsA.alt,
+        this.entityA,
+      );
+      this.vecB = calculate3DVector(
+        this.statsB.az,
+        this.statsB.alt,
+        this.entityB,
+      );
+
+      // Hitung Sudut Pisah Terpendek (Great-Circle Path)
+      this.theta = calculateAngularSeparation(this.vecA, this.vecB);
+
+      // Cari Aspek Aktif (Nearest-ORB)
+      this.aspect = matchAspect(this.theta, this.orbConfig);
+
+      const hThreshold =
+        typeof state !== "undefined" && state.horizonThreshold !== undefined
+          ? state.horizonThreshold
+          : 3.0;
+      this.isAboveA = this.statsA.alt >= hThreshold;
+      this.isAboveB = this.statsB.alt >= hThreshold;
+
+      this.isZenithSideA = isZenithSide(this.entityA, this.isAboveA);
+      this.isZenithSideB = isZenithSide(this.entityB, this.isAboveB);
+      this.isNadirSideA = isNadirSide(this.entityA, this.isAboveA);
+      this.isNadirSideB = isNadirSide(this.entityB, this.isAboveB);
+
+      // Klasifikasi Zona Kubah Belahan Langit
+      this.isZenithZone = this.isZenithSideA && this.isZenithSideB; // Hanya aktif jika kedua objek di Zenith
+      this.isNadirZone = this.isNadirSideA && this.isNadirSideB; // Hanya aktif jika kedua objek di Nadir
+    } else {
+      this.vecA = null;
+      this.vecB = null;
+      this.theta = null;
+      this.aspect = null;
+      this.isZenithZone = false;
+      this.isNadirZone = false;
+    }
+  }
+
+  /**
+   * Mengembalikan status representasi apakah hubungan Identity aktif untuk tipe matriks tertentu.
+   *
+   * @param {string} matrixType - 'ZENITH', 'NADIR', or 'MATRIX' (general)
+   * @returns {boolean} True jika aktif di zona matriks tersebut
+   */
+  isActiveInMatrix(matrixType) {
+    if (matrixType === "ZENITH") {
+      return this.isZenithZone;
+    }
+    if (matrixType === "NADIR") {
+      return this.isNadirZone;
+    }
+    // General 'MATRIX' selalu aktif
+    return true;
+  }
+}
+
+/**
+ * Menerjemahkan konfigurasi aspek ke dalam format HTML Card
+ * (Berguna untuk merender list aspek di UI)
+ *
+ * @param {Object} aspect - Data profil aspek
+ * @returns {string} Markup HTML
+ */
+function generateAspectCardHTML(aspect) {
+  return `
+      <div id="aspect-row-${aspect.id}" class="w-full flex items-center justify-between gap-3 border bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 border-l-[4px] p-4 transition-colors hover:bg-neutral-100/55 dark:hover:bg-neutral-900/55 select-none rounded-none pointer-events-auto" style="border-left-color: ${aspect.color};">
+        <div class="flex items-center gap-4 min-w-0 pointer-events-none">
+          <!-- Colored Circle with Symbol -->
+          <div class="w-11 h-11 rounded-full border-2 border-neutral-200 dark:border-neutral-800 flex items-center justify-center font-extrabold text-[12px] text-white select-none shrink-0 shadow-sm" style="background-color: ${aspect.color};">
+            <span>${aspect.symbol}</span>
+          </div>
+          <div class="min-w-0">
+            <h3 class="font-extrabold text-[11px] text-black dark:text-white leading-tight uppercase tracking-wider font-sans select-none">${aspect.name}</h3>
+            <p class="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1 leading-none select-none font-sans flex items-center gap-1.5 flex-wrap">
+              <span>${aspect.id} • ${aspect.angle}°</span>
+              <span class="text-neutral-300 dark:text-neutral-700">|</span>
+              <span>Orb: ${aspect.orb}°</span>
+              ${
+                aspect.sentiment
+                  ? `
+              <span class="text-neutral-300 dark:text-neutral-700">|</span>
+              <span class="font-mono text-[9px] px-1.5 py-0.5 rounded-sm bg-neutral-100 dark:bg-neutral-800">${aspect.sentiment}</span>
+              `
+                  : ""
+              }
+              ${
+                aspect.score !== undefined
+                  ? `
+              <span class="text-neutral-300 dark:text-neutral-700">|</span>
+              <span class="font-mono text-[9px]">Score: ${aspect.score}</span>
+              `
+                  : ""
+              }
+            </p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-2 shrink-0 pointer-events-auto">
+          <!-- Edit button -->
+          <button class="aspect-edit-btn flex items-center justify-center border border-neutral-200 dark:border-neutral-800 hover:border-blue-500 hover:text-blue-500 dark:hover:border-blue-500 hover:bg-blue-500/5 p-2 h-8 rounded-none transition-colors focus:outline-none cursor-pointer text-neutral-400 dark:text-neutral-500" data-id="${aspect.id}" title="Edit aspek ini">
+            <i data-feather="edit-2" class="w-3.5 h-3.5 pointer-events-none"></i>
+          </button>
+          
+          <!-- Delete button (only if not core) -->
+          ${
+            !aspect.isCore
+              ? `
+          <button class="aspect-delete-btn flex items-center justify-center border border-neutral-200 dark:border-neutral-800 hover:border-rose-500 hover:text-rose-500 dark:hover:border-rose-500 hover:bg-rose-500/5 p-2 h-8 rounded-none transition-colors focus:outline-none cursor-pointer text-neutral-400 dark:text-neutral-500" data-id="${aspect.id}" title="Hapus aspek ini">
+            <i data-feather="trash-2" class="w-3.5 h-3.5 pointer-events-none"></i>
+          </button>
+          `
+              : ""
+          }
+
+          <!-- Info button -->
+          <button class="aspect-info-btn flex items-center justify-center border border-black dark:border-white p-2 h-8 rounded-none text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors focus:outline-none cursor-pointer" data-id="${aspect.id}" title="Lihat Detail">
+            <i data-feather="info" class="w-3.5 h-3.5 pointer-events-none"></i>
+          </button>
+
+          <!-- ON / OFF Toggle Custom Styled Button -->
+          <button class="aspect-toggle-btn cursor-pointer select-none border-none bg-transparent focus:outline-none" data-id="${aspect.id}" title="Toggle aspect active status">
+            ${
+              aspect.enabled
+                ? `
+              <div class="px-2.5 h-8 bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white font-black text-[10px] tracking-wider transition-all duration-300 rounded-none shadow-sm flex items-center justify-center gap-1 min-w-[56px] hover:bg-neutral-900 dark:hover:bg-neutral-100">
+                <span class="w-1 h-1 bg-white dark:bg-black rounded-full inline-block animate-pulse"></span> ON
+              </div>
+            `
+                : `
+              <div class="px-2.5 h-8 bg-transparent text-neutral-400 dark:text-neutral-500 border border-neutral-300 dark:border-neutral-800 font-black text-[10px] tracking-wider transition-all duration-300 rounded-none flex items-center justify-center gap-1 min-w-[56px] hover:bg-neutral-50/50 dark:hover:bg-neutral-950/50 hover:text-black dark:hover:text-white hover:border-black dark:hover:border-white">
+                <span class="w-1 h-1 bg-neutral-300 dark:bg-neutral-700 rounded-full inline-block"></span> OFF
+              </div>
+            `
+            }
+          </button>
+        </div>
+      </div>
+    `;
 }
