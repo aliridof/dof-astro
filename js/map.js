@@ -596,55 +596,72 @@ function renderChartSVG(type, activeSubject, date) {
   svg += `<circle cx="${cx}" cy="${cy}" r="${R3}" stroke="currentColor" class="${horizonStyle}" stroke-width="2.5" />`;
   svg += `<circle cx="${cx}" cy="${cy}" r="${R4}" stroke="currentColor" class="${graticuleStyle}" stroke-width="0.75" />`;
 
-  // 2. Structural sector radial dividing lines (12 sections, spaced every 30 degrees, dynamically anchored to Sirius Azimuth)
+  // 2. Structural sector radial dividing lines (72 total sectors divided into 3 rings)
+  // Inner Ring (12 divisions, spaced 30 degrees, radius 22 to 70)
   for (let s = 0; s < 12; s++) {
     const angle = siriusAz + s * 30;
-    let rad = 0;
-    if (isZenith) {
-      rad = ((angle - 90) * Math.PI) / 180;
-    } else {
-      rad = ((90 - angle) * Math.PI) / 180;
-    }
+    const rad = isZenith ? ((angle - 90) * Math.PI) / 180 : ((90 - angle) * Math.PI) / 180;
     const x1 = cx + 22 * Math.cos(rad);
     const y1 = cy + 22 * Math.sin(rad);
-    const x2 = cx + R3 * Math.cos(rad); // End perfectly at the Ring 4 horizon ring limit so it doesn't overlap the Ring 5 Zodiac belt
+    const x2 = cx + R1 * Math.cos(rad);
+    const y2 = cy + R1 * Math.sin(rad);
+    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" class="${graticuleStyle}" stroke-width="0.75" />`;
+  }
+  // Middle Ring (24 divisions, spaced 15 degrees, radius 70 to 140)
+  for (let s = 0; s < 24; s++) {
+    const angle = siriusAz + s * 15;
+    const rad = isZenith ? ((angle - 90) * Math.PI) / 180 : ((90 - angle) * Math.PI) / 180;
+    const x1 = cx + R1 * Math.cos(rad);
+    const y1 = cy + R1 * Math.sin(rad);
+    const x2 = cx + R2 * Math.cos(rad);
+    const y2 = cy + R2 * Math.sin(rad);
+    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" class="${graticuleStyle}" stroke-width="0.75" />`;
+  }
+  // Outer Ring (36 divisions, spaced 10 degrees, radius 140 to 210)
+  for (let s = 0; s < 36; s++) {
+    const angle = siriusAz + s * 10;
+    const rad = isZenith ? ((angle - 90) * Math.PI) / 180 : ((90 - angle) * Math.PI) / 180;
+    const x1 = cx + R2 * Math.cos(rad);
+    const y1 = cy + R2 * Math.sin(rad);
+    const x2 = cx + R3 * Math.cos(rad);
     const y2 = cy + R3 * Math.sin(rad);
-
     svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" class="${graticuleStyle}" stroke-width="0.75" />`;
   }
 
   // Draw perfect vertical and horizontal cardinal reference lines (Removed for clean styling - showing labels only)
 
-  // 3. Grid cell numbering (01 to 36) centered in sectors, dynamically rotated following Sirius Azimuth
+  // 3. Grid cell numbering centered in sectors, dynamically rotated following Sirius Azimuth
+  // Inner Ring (01 to 12, centered at r1 = 45)
   for (let slice = 0; slice < 12; slice++) {
     const midAngle = siriusAz + slice * 30 + 15;
-    let rad = 0;
-    if (isZenith) {
-      rad = ((midAngle - 90) * Math.PI) / 180;
-    } else {
-      rad = ((90 - midAngle) * Math.PI) / 180;
-    }
-
-    // Inner Ring (01 - 12)
-    const name1 = String(slice + 1).padStart(2, "0");
+    const rad = isZenith ? ((midAngle - 90) * Math.PI) / 180 : ((90 - midAngle) * Math.PI) / 180;
+    const name = String(slice + 1).padStart(2, "0");
     const r1 = 45;
-    const x1 = cx + r1 * Math.cos(rad);
-    const y1 = cy + r1 * Math.sin(rad);
-    svg += `<text x="${x1}" y="${y1}" text-anchor="middle" dominant-baseline="central" class="${textMuted}">${name1}</text>`;
+    const x = cx + r1 * Math.cos(rad);
+    const y = cy + r1 * Math.sin(rad);
+    svg += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" class="${textMuted}">${name}</text>`;
+  }
 
-    // Middle Ring (13 - 24)
-    const name2 = String(slice + 13);
+  // Middle Ring (13 to 36, centered at r2 = 105)
+  for (let slice = 0; slice < 24; slice++) {
+    const midAngle = siriusAz + slice * 15 + 7.5;
+    const rad = isZenith ? ((midAngle - 90) * Math.PI) / 180 : ((90 - midAngle) * Math.PI) / 180;
+    const name = String(slice + 13).padStart(2, "0");
     const r2 = 105;
-    const x2 = cx + r2 * Math.cos(rad);
-    const y2 = cy + r2 * Math.sin(rad);
-    svg += `<text x="${x2}" y="${y2}" text-anchor="middle" dominant-baseline="central" class="${textMuted}">${name2}</text>`;
+    const x = cx + r2 * Math.cos(rad);
+    const y = cy + r2 * Math.sin(rad);
+    svg += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" class="${textMuted}">${name}</text>`;
+  }
 
-    // Outer Ring (25 - 36)
-    const name3 = String(slice + 25);
+  // Outer Ring (37 to 72, centered at r3 = 175)
+  for (let slice = 0; slice < 36; slice++) {
+    const midAngle = siriusAz + slice * 10 + 5.0;
+    const rad = isZenith ? ((midAngle - 90) * Math.PI) / 180 : ((90 - midAngle) * Math.PI) / 180;
+    const name = String(slice + 37).padStart(2, "0");
     const r3 = 175;
-    const x3 = cx + r3 * Math.cos(rad);
-    const y3 = cy + r3 * Math.sin(rad);
-    svg += `<text x="${x3}" y="${y3}" text-anchor="middle" dominant-baseline="central" class="${textMuted}">${name3}</text>`;
+    const x = cx + r3 * Math.cos(rad);
+    const y = cy + r3 * Math.sin(rad);
+    svg += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" class="${textMuted}">${name}</text>`;
   }
 
   // 4. Direction Labels (N, S, W, E) outside horizon
@@ -674,8 +691,8 @@ function renderChartSVG(type, activeSubject, date) {
   svg += `<text x="${cx}" y="${cy - 23}" text-anchor="middle" font-size="7.5px" font-weight="900" class="fill-neutral-400 dark:fill-neutral-500 uppercase tracking-[0.2em] leading-none">${centerTitle}</text>`;
   // Center emblem - displays TZ (white) for Zenith, TN (black) for Nadir (using centralized entity functions)
   const centerEntityId = isZenith
-    ? "subject-terrestrial-zenith"
-    : "subject-terrestrial-nadir";
+    ? "terrestrial-zenith"
+    : "terrestrial-nadir";
   const centerEntity = ENTITIES.find((e) => e.id === centerEntityId);
   if (centerEntity) {
     svg += getChartMarkerSVG(centerEntity, cx, cy);
@@ -712,71 +729,66 @@ function renderChartSVG(type, activeSubject, date) {
   });
 
   // 7. Render Celestial Zenith & Celestial Nadir Projections
-  if (
-    isZenith &&
-    state.showZenith &&
-    state.activeBodies.has("subject-celestial-zenith")
-  ) {
-    const anchorTime = getSubjectAnchorTime(activeSubject);
-    const coords = getCelestialCoordinates(
-      activeSubject.lat,
-      activeSubject.lng,
-      anchorTime,
-    );
-    if (coords) {
+  const anchorTime = getSubjectAnchorTime(activeSubject);
+  const coords = getCelestialCoordinates(
+    activeSubject.lat,
+    activeSubject.lng,
+    anchorTime,
+  );
+
+  if (coords) {
+    // 7.1 Check Celestial Zenith (CZ)
+    if (state.showZenith && state.activeBodies.has("celestial-zenith")) {
       const czAzAlt = getFixedCoordinateAzAlt(
         coords.zenith.ra,
         coords.zenith.dec,
         date,
         activeSubject,
       );
-      if (czAzAlt && czAzAlt.alt >= 0) {
-        const r = ((90 - czAzAlt.alt) / 90) * R3;
-        const theta = ((czAzAlt.az - 90) * Math.PI) / 180;
-        const px = cx + r * Math.cos(theta);
-        const py = cy + r * Math.sin(theta);
+      if (czAzAlt) {
+        const drawCZ = isZenith ? czAzAlt.alt >= 0 : czAzAlt.alt < 0;
+        if (drawCZ) {
+          const r = isZenith ? ((90 - czAzAlt.alt) / 90) * R3 : ((90 + czAzAlt.alt) / 90) * R3;
+          const theta = isZenith
+            ? ((czAzAlt.az - 90) * Math.PI) / 180
+            : ((90 - czAzAlt.az) * Math.PI) / 180;
+          const px = cx + r * Math.cos(theta);
+          const py = cy + r * Math.sin(theta);
 
-        const czEntity = ENTITIES.find(
-          (e) => e.id === "subject-celestial-zenith",
-        );
-        if (czEntity) {
-          svg += `<g class="transition-transform duration-200 hover:scale-110">
-                        ${getChartMarkerSVG(czEntity, px, py)}
-                    </g>`;
+          const czEntity = ENTITIES.find((e) => e.id === "celestial-zenith");
+          if (czEntity) {
+            svg += `<g class="transition-transform duration-200 hover:scale-110">
+                          ${getChartMarkerSVG(czEntity, px, py)}
+                      </g>`;
+          }
         }
       }
     }
-  } else if (
-    !isZenith &&
-    state.showNadir &&
-    state.activeBodies.has("subject-celestial-nadir")
-  ) {
-    const anchorTime = getSubjectAnchorTime(activeSubject);
-    const coords = getCelestialCoordinates(
-      activeSubject.lat,
-      activeSubject.lng,
-      anchorTime,
-    );
-    if (coords) {
+
+    // 7.2 Check Celestial Nadir (CN)
+    if (state.showNadir && state.activeBodies.has("celestial-nadir")) {
       const cnAzAlt = getFixedCoordinateAzAlt(
         coords.nadir.ra,
         coords.nadir.dec,
         date,
         activeSubject,
       );
-      if (cnAzAlt && cnAzAlt.alt < 0) {
-        const r = ((90 + cnAzAlt.alt) / 90) * R3;
-        const theta = ((90 - cnAzAlt.az) * Math.PI) / 180;
-        const px = cx + r * Math.cos(theta);
-        const py = cy + r * Math.sin(theta);
+      if (cnAzAlt) {
+        const drawCN = isZenith ? cnAzAlt.alt >= 0 : cnAzAlt.alt < 0;
+        if (drawCN) {
+          const r = isZenith ? ((90 - cnAzAlt.alt) / 90) * R3 : ((90 + cnAzAlt.alt) / 90) * R3;
+          const theta = isZenith
+            ? ((cnAzAlt.az - 90) * Math.PI) / 180
+            : ((90 - cnAzAlt.az) * Math.PI) / 180;
+          const px = cx + r * Math.cos(theta);
+          const py = cy + r * Math.sin(theta);
 
-        const cnEntity = ENTITIES.find(
-          (e) => e.id === "subject-celestial-nadir",
-        );
-        if (cnEntity) {
-          svg += `<g class="transition-transform duration-200 hover:scale-110">
-                        ${getChartMarkerSVG(cnEntity, px, py)}
-                    </g>`;
+          const cnEntity = ENTITIES.find((e) => e.id === "celestial-nadir");
+          if (cnEntity) {
+            svg += `<g class="transition-transform duration-200 hover:scale-110">
+                          ${getChartMarkerSVG(cnEntity, px, py)}
+                      </g>`;
+          }
         }
       }
     }
@@ -806,10 +818,9 @@ function renderChartSVG(type, activeSubject, date) {
     const px = cx + r * Math.cos(theta);
     const py = cy + r * Math.sin(theta);
 
-    // Calculate sector number based on 5-ring framework anchored to Sirius Azimuth
+    // Calculate sector number based on concentric divisions anchored to Sirius Azimuth
     let relAz = (az - siriusAz) % 360;
     if (relAz < 0) relAz += 360;
-    let sliceIndex = Math.floor(relAz / 30);
     let absAlt = Math.abs(alt);
     let sectorNum = 1;
     const isExactlyAtCenter = Math.abs(absAlt - 90) < 1e-9;
@@ -818,11 +829,14 @@ function renderChartSVG(type, activeSubject, date) {
       sectorString = "[00]";
     } else {
       if (absAlt >= 60 && absAlt < 90) {
+        let sliceIndex = Math.floor(relAz / 30);
         sectorNum = sliceIndex + 1;
       } else if (absAlt >= 30 && absAlt < 60) {
+        let sliceIndex = Math.floor(relAz / 15);
         sectorNum = sliceIndex + 13;
       } else {
-        sectorNum = sliceIndex + 25;
+        let sliceIndex = Math.floor(relAz / 10);
+        sectorNum = sliceIndex + 37;
       }
       sectorString = `[${String(sectorNum).padStart(2, "0")}]`;
     }
@@ -969,7 +983,7 @@ function updateMap() {
     // Zenith (TZ)
     if (
       !state.showZenith ||
-      !state.activeBodies.has("subject-terrestrial-zenith")
+      !state.activeBodies.has("terrestrial-zenith")
     ) {
       removeMarker("zenith");
     } else {
@@ -978,7 +992,7 @@ function updateMap() {
       const point = [zLat, zLng];
 
       const tzEntity = ENTITIES.find(
-        (e) => e.id === "subject-terrestrial-zenith",
+        (e) => e.id === "terrestrial-zenith",
       );
       const iconElement = getMapMarkerElement(tzEntity);
 
@@ -1004,7 +1018,7 @@ function updateMap() {
     // Celestial Zenith (CZ)
     if (
       !state.showZenith ||
-      !state.activeBodies.has("subject-celestial-zenith")
+      !state.activeBodies.has("celestial-zenith")
     ) {
       removeMarker("cz");
     } else {
@@ -1033,7 +1047,7 @@ function updateMap() {
         : `<div class="font-bold text-center text-slate-800 uppercase tracking-wide font-sans">Celestial Zenith (CZ)</div>`;
 
       const czEntity = ENTITIES.find(
-        (e) => e.id === "subject-celestial-zenith",
+        (e) => e.id === "celestial-zenith",
       );
       const iconElement = getMapMarkerElement(czEntity);
 
@@ -1052,7 +1066,7 @@ function updateMap() {
     // Nadir (TN)
     if (
       !state.showNadir ||
-      !state.activeBodies.has("subject-terrestrial-nadir")
+      !state.activeBodies.has("terrestrial-nadir")
     ) {
       removeMarker("nadir");
     } else {
@@ -1062,7 +1076,7 @@ function updateMap() {
       const point = [nLat, nLng];
 
       const tnEntity = ENTITIES.find(
-        (e) => e.id === "subject-terrestrial-nadir",
+        (e) => e.id === "terrestrial-nadir",
       );
       const iconElement = getMapMarkerElement(tnEntity);
 
@@ -1088,7 +1102,7 @@ function updateMap() {
     // Celestial Nadir (CN)
     if (
       !state.showNadir ||
-      !state.activeBodies.has("subject-celestial-nadir")
+      !state.activeBodies.has("celestial-nadir")
     ) {
       removeMarker("cn");
     } else {
@@ -1120,7 +1134,7 @@ function updateMap() {
                  </div>`
         : `<div class="font-bold text-center text-slate-800 uppercase tracking-wide font-sans">Celestial Nadir (CN)</div>`;
 
-      const cnEntity = ENTITIES.find((e) => e.id === "subject-celestial-nadir");
+      const cnEntity = ENTITIES.find((e) => e.id === "celestial-nadir");
       const iconElement = getMapMarkerElement(cnEntity);
 
       const icon = window.L.divIcon({

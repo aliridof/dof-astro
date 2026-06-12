@@ -4,77 +4,176 @@
  * Default configurations for identity aspects.
  */
 const DEFAULT_ASPECTS = [
+  // 1. NEUTRAL
   {
-    id: "CONJ",
-    name: "Konjungsi",
+    id: "CON",
+    name: "CONJUNCTION",
     angle: 0,
-    symbol: "☌",
-    color: "#10b981",
+    symbol: "=",
+    color: "#fbbc05",
     enabled: true,
     isCore: true,
-    orb: 3.5,
-  }, // Emerald Green
+    orb: 1.0,
+    sentiment: "[=]",
+    score: 0,
+  },
+  // 2. POSITIVE
   {
-    id: "SEXTILE",
-    name: "Sekstil",
+    id: "SSX",
+    name: "SEMI-SEXTILE",
+    angle: 30,
+    symbol: "+1",
+    color: "#00ad45",
+    enabled: true,
+    isCore: true,
+    orb: 1.0,
+    sentiment: "[+]",
+    score: 1,
+  },
+  {
+    id: "DEC",
+    name: "DECILE",
+    angle: 36,
+    symbol: "+1",
+    color: "#00ad45",
+    enabled: true,
+    isCore: true,
+    orb: 1.0,
+    sentiment: "[+]",
+    score: 1,
+  },
+  {
+    id: "SEX",
+    name: "SEXTILE",
     angle: 60,
-    symbol: "⚹",
-    color: "#3b82f6",
+    symbol: "+3",
+    color: "#00ad45",
     enabled: true,
     isCore: true,
-    orb: 3.0,
-  }, // Blue
+    orb: 1.0,
+    sentiment: "[+]",
+    score: 3,
+  },
   {
-    id: "QUINTILE",
-    name: "Kuintil",
+    id: "QUI",
+    name: "QUINTILE",
     angle: 72,
-    symbol: "Q",
-    color: "#a855f7",
+    symbol: "+3",
+    color: "#00ad45",
     enabled: true,
     isCore: true,
-    orb: 2.0,
-  }, // Purple
+    orb: 1.0,
+    sentiment: "[+]",
+    score: 3,
+  },
   {
-    id: "SQUARE",
-    name: "Kuadrat",
-    angle: 90,
-    symbol: "□",
-    color: "#ef4444",
-    enabled: true,
-    isCore: true,
-    orb: 3.0,
-  }, // Red
-  {
-    id: "TRINE",
-    name: "Trigon",
+    id: "TRI",
+    name: "TRINE",
     angle: 120,
-    symbol: "△",
-    color: "#f59e0b",
+    symbol: "+5",
+    color: "#00ad45",
     enabled: true,
     isCore: true,
-    orb: 3.0,
-  }, // Amber Orange
+    orb: 1.0,
+    sentiment: "[+]",
+    score: 5,
+  },
+  // 3. NEGATIVE
   {
-    id: "OPPO",
-    name: "Oposisi",
-    angle: 180,
-    symbol: "☍",
-    color: "#64748b",
+    id: "NOV",
+    name: "NOVILE",
+    angle: 40,
+    symbol: "-1",
+    color: "#ea4335",
     enabled: true,
     isCore: true,
-    orb: 3.5,
-  }, // Slate Gray
+    orb: 1.0,
+    sentiment: "[-]",
+    score: 1,
+  },
+  {
+    id: "SSQ",
+    name: "SEMI-SQUARE",
+    angle: 45,
+    symbol: "-1",
+    color: "#ea4335",
+    enabled: true,
+    isCore: true,
+    orb: 1.0,
+    sentiment: "[-]",
+    score: 1,
+  },
+  {
+    id: "SQR",
+    name: "SQUARE",
+    angle: 90,
+    symbol: "-3",
+    color: "#ea4335",
+    enabled: true,
+    isCore: true,
+    orb: 1.0,
+    sentiment: "[-]",
+    score: 3,
+  },
+  {
+    id: "OPP",
+    name: "OPPOSITION",
+    angle: 180,
+    symbol: "-5",
+    color: "#ea4335",
+    enabled: true,
+    isCore: true,
+    orb: 1.0,
+    sentiment: "[-]",
+    score: 5,
+  },
 ];
 
 function getAspectsList() {
   const saved = localStorage.getItem("identity_aspects_list");
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Check if saved contains outdated shortcodes that could break operations
+      const hasOldCodes = parsed.some(aspect => 
+        ["CONJ", "SEXTILE", "QUINTILE", "SQUARE", "TRINE", "OPPO"].includes(aspect.id)
+      );
+
+      // Verify that all core aspects are present in the list
+      const missingCore = DEFAULT_ASPECTS.some(da => !parsed.some(pa => pa.id === da.id));
+
+      if (hasOldCodes || missingCore) {
+        // Safe migration: preserve any valid custom aspects while restoring the standard core aspects
+        const customAspects = parsed.filter(a => !a.isCore && !["CONJ", "SEXTILE", "QUINTILE", "SQUARE", "TRINE", "OPPO"].includes(a.id));
+        const merged = [
+          ...JSON.parse(JSON.stringify(DEFAULT_ASPECTS)),
+          ...customAspects
+        ];
+        saveAspectsList(merged);
+        return merged;
+      }
+
+      let changed = false;
+      parsed.forEach(aspect => {
+        // Initialize undefined orbs to default 1.0 but preserve user dynamic values
+        if (aspect.orb === undefined) {
+          aspect.orb = 1.0;
+          changed = true;
+        }
+        if (!aspect.sentiment || aspect.sentiment === "(None)" || aspect.sentiment === "") {
+          aspect.sentiment = "[=]";
+          changed = true;
+        }
+      });
+      if (changed) {
+        saveAspectsList(parsed);
+      }
+      return parsed;
     } catch (e) {
       console.error("Error parsing saved aspects list:", e);
     }
   }
+  saveAspectsList(DEFAULT_ASPECTS);
   return JSON.parse(JSON.stringify(DEFAULT_ASPECTS));
 }
 
@@ -86,14 +185,18 @@ const ASPECTS_CORE = DEFAULT_ASPECTS;
 
 const defaultOrbConfig = {
   mode: "default",
-  default_value: 3.5, // Default orb threshold (dalam derajat)
+  default_value: 1.0, // Default orb threshold (dalam derajat)
   custom_values: {
-    CONJ: 3.5,
-    SEXTILE: 3.0,
-    QUINTILE: 2.0,
-    SQUARE: 3.0,
-    TRINE: 3.0,
-    OPPO: 3.5,
+    CON: 1.0,
+    SSX: 1.0,
+    DEC: 1.0,
+    SEX: 1.0,
+    QUI: 1.0,
+    TRI: 1.0,
+    NOV: 1.0,
+    SSQ: 1.0,
+    SQR: 1.0,
+    OPP: 1.0,
   },
 };
 
@@ -169,14 +272,12 @@ function matchAspect(theta, orbConfig = defaultOrbConfig) {
 function calculate3DVector(az, alt, entity) {
   if (entity) {
     if (
-      entity.id === "subject-terrestrial-zenith" ||
-      entity.id === "subject-celestial-zenith"
+      entity.id === "terrestrial-zenith"
     ) {
       return [0, 0, 1]; // Zenith mengarah tepat ke atas
     }
     if (
-      entity.id === "subject-terrestrial-nadir" ||
-      entity.id === "subject-celestial-nadir"
+      entity.id === "terrestrial-nadir"
     ) {
       return [0, 0, -1]; // Nadir mengarah tepat ke bawah
     }
@@ -296,13 +397,11 @@ function getActiveEntityStats(
  */
 function isZenithSide(entity, isAbove) {
   if (
-    entity.id === "subject-terrestrial-zenith" ||
-    entity.id === "subject-celestial-zenith"
+    entity.id === "terrestrial-zenith"
   )
     return true;
   if (
-    entity.id === "subject-terrestrial-nadir" ||
-    entity.id === "subject-celestial-nadir"
+    entity.id === "terrestrial-nadir"
   )
     return false;
   return isAbove;
@@ -317,13 +416,11 @@ function isZenithSide(entity, isAbove) {
  */
 function isNadirSide(entity, isAbove) {
   if (
-    entity.id === "subject-terrestrial-nadir" ||
-    entity.id === "subject-celestial-nadir"
+    entity.id === "terrestrial-nadir"
   )
     return true;
   if (
-    entity.id === "subject-terrestrial-zenith" ||
-    entity.id === "subject-celestial-zenith"
+    entity.id === "terrestrial-zenith"
   )
     return false;
   return !isAbove;
@@ -412,7 +509,7 @@ class Identity {
       const hThreshold =
         typeof state !== "undefined" && state.horizonThreshold !== undefined
           ? state.horizonThreshold
-          : 3.0;
+          : 0.0;
       this.isAboveA = this.statsA.alt >= hThreshold;
       this.isAboveB = this.statsB.alt >= hThreshold;
 

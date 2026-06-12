@@ -3,10 +3,10 @@
 const ENTITIES = [
   // 1. TERRESTRIAL ZENITH
   {
-    id: "subject-terrestrial-zenith",
+    id: "terrestrial-zenith",
     type: "TERRESTRIAL",
     category: "STATIC - SUBJECT - TERRESTRIAL",
-    label: "STATIC - SUBJECT - TERRESTRIAL - ZENITH",
+    label: "TERRESTRIAL - ZENITH",
     subLabel: "Zenith - Terrestrial • ",
     symbol: "TZ",
     color: "#10b981", // emerald-500
@@ -26,10 +26,10 @@ const ENTITIES = [
   },
   // 2. TERRESTRIAL NADIR
   {
-    id: "subject-terrestrial-nadir",
+    id: "terrestrial-nadir",
     type: "TERRESTRIAL",
     category: "STATIC - SUBJECT - TERRESTRIAL",
-    label: "STATIC - SUBJECT - TERRESTRIAL - NADIR",
+    label: "TERRESTRIAL - NADIR",
     subLabel: "Nadir - Terrestrial • ",
     symbol: "TN",
     color: "#f43f5e", // rose-500
@@ -49,10 +49,10 @@ const ENTITIES = [
   },
   // 3. CELESTIAL ZENITH
   {
-    id: "subject-celestial-zenith",
+    id: "celestial-zenith",
     type: "CELESTIAL",
     category: "DYNAMIC - SUBJECT - CELESTIAL",
-    label: "DYNAMIC - SUBJECT - CELESTIAL - ZENITH",
+    label: "CELESTIAL - ZENITH",
     subLabel: "Zenith - Celestial • ",
     symbol: "CZ",
     color: "#10b981", // emerald-500
@@ -71,10 +71,10 @@ const ENTITIES = [
   },
   // 4. CELESTIAL NADIR
   {
-    id: "subject-celestial-nadir",
+    id: "celestial-nadir",
     type: "CELESTIAL",
     category: "DYNAMIC - SUBJECT - CELESTIAL",
-    label: "DYNAMIC - SUBJECT - CELESTIAL - NADIR",
+    label: "CELESTIAL - NADIR",
     subLabel: "Nadir - Celestial • ",
     symbol: "CN",
     color: "#f43f5e", // rose-500
@@ -96,22 +96,28 @@ const ENTITIES = [
     id: "Sun",
     type: "OBJECT",
     category: "STAR",
-    label: "SUN",
+    label: "SOLAR",
     subLabel: "Matahari / شمس (Syams)",
     color: "#f59e0b",
     symbol: "☉",
     class: "sun-marker",
+    abbrev: "SOL",
+    abbreviation: "SOL",
+    abrevasi: "SOL",
   },
   // 6. MOON
   {
     id: "Moon",
     type: "OBJECT",
     category: "SATELLITE - NATURAL",
-    label: "MOON",
+    label: "LUNAR",
     subLabel: "Bulan / قمر (Qamar)",
     color: "#94a3b8",
     symbol: "☽",
     class: "moon-marker",
+    abbrev: "LUN",
+    abbreviation: "LUN",
+    abrevasi: "LUN",
   },
   // 7. MERCURY
   {
@@ -123,6 +129,9 @@ const ENTITIES = [
     color: "#f87171",
     symbol: "☿",
     class: "mercury-marker",
+    abbrev: "MER",
+    abbreviation: "MER",
+    abrevasi: "MER",
   },
   // 8. VENUS
   {
@@ -134,6 +143,9 @@ const ENTITIES = [
     color: "#facc15",
     symbol: "♀",
     class: "venus-marker",
+    abbrev: "VEN",
+    abbreviation: "VEN",
+    abrevasi: "VEN",
   },
   // 9. MARS
   {
@@ -145,6 +157,9 @@ const ENTITIES = [
     color: "#ef4444",
     symbol: "♂",
     class: "mars-marker",
+    abbrev: "MAR",
+    abbreviation: "MAR",
+    abrevasi: "MAR",
   },
   // 10. JUPITER
   {
@@ -156,6 +171,9 @@ const ENTITIES = [
     color: "#ea580c",
     symbol: "♃",
     class: "jupiter-marker",
+    abbrev: "JUP",
+    abbreviation: "JUP",
+    abrevasi: "JUP",
   },
   // 11. SATURN
   {
@@ -167,6 +185,9 @@ const ENTITIES = [
     color: "#fbbf24",
     symbol: "♄",
     class: "saturn-marker",
+    abbrev: "SAT",
+    abbreviation: "SAT",
+    abrevasi: "SAT",
   },
   // 12. URANUS
   {
@@ -178,6 +199,9 @@ const ENTITIES = [
     color: "#38bdf8",
     symbol: "♅",
     class: "uranus-marker",
+    abbrev: "URA",
+    abbreviation: "URA",
+    abrevasi: "URA",
   },
   // 13. NEPTUNE
   {
@@ -185,10 +209,13 @@ const ENTITIES = [
     type: "OBJECT",
     category: "PLANET",
     label: "NEPTUNE",
-    subLabel: "Neptunus / نبتون (Nibtun)",
+    subLabel: "Neptunus / نبتon (Nibtun)",
     color: "#3b82f6",
     symbol: "♆",
     class: "neptune-marker",
+    abbrev: "NEP",
+    abbreviation: "NEP",
+    abrevasi: "NEP",
   },
   // 14. PLUTO
   {
@@ -200,6 +227,9 @@ const ENTITIES = [
     color: "#a855f7",
     symbol: "♇",
     class: "pluto-marker",
+    abbrev: "PLU",
+    abbreviation: "PLU",
+    abrevasi: "PLU",
   },
   // 15. SIRIUS
   {
@@ -211,6 +241,9 @@ const ENTITIES = [
     color: "#000000",
     symbol: "★",
     class: "sirius-marker",
+    abbrev: "SIR",
+    abbreviation: "SIR",
+    abrevasi: "SIR",
   },
 ];
 
@@ -302,7 +335,6 @@ function generateStatsTableHTML(stats, isObject, bodyId = null) {
 
   let relAz = (stats.az - siriusAzAux) % 360;
   if (relAz < 0) relAz += 360;
-  let sliceIndex = Math.floor(relAz / 30);
   let absAlt = Math.abs(stats.alt);
   let sectorNum = 1;
 
@@ -314,11 +346,14 @@ function generateStatsTableHTML(stats, isObject, bodyId = null) {
     ringString = "00";
   } else {
     if (absAlt >= 60 && absAlt < 90) {
+      let sliceIndex = Math.floor(relAz / 30);
       sectorNum = sliceIndex + 1;
     } else if (absAlt >= 30 && absAlt < 60) {
+      let sliceIndex = Math.floor(relAz / 15);
       sectorNum = sliceIndex + 13;
     } else {
-      sectorNum = sliceIndex + 25;
+      let sliceIndex = Math.floor(relAz / 10);
+      sectorNum = sliceIndex + 37;
     }
     sectorString = String(sectorNum).padStart(2, "0");
 
@@ -327,9 +362,9 @@ function generateStatsTableHTML(stats, isObject, bodyId = null) {
 
     if (sectorNum >= 1 && sectorNum <= 12) {
       ringString = "01";
-    } else if (sectorNum >= 13 && sectorNum <= 24) {
+    } else if (sectorNum >= 13 && sectorNum <= 36) {
       ringString = "02";
-    } else if (sectorNum >= 25 && sectorNum <= 36) {
+    } else if (sectorNum >= 37 && sectorNum <= 72) {
       ringString = "03";
     }
   }
@@ -733,7 +768,7 @@ function getChartMarkerSVG(entity, px, py, sectorString = "") {
   }
   // Default for celestial body OBJECT types
   const labelAbbrev =
-    entity.id === "Sirius" ? "SUI" : entity.label.substring(0, 3).toUpperCase();
+    entity.abbrev || entity.id.substring(0, 3).toUpperCase();
   return `<g class="transition-all duration-300 hover:scale-115">
         <text x="${px}" y="${py - 16}" text-anchor="middle" font-size="8.5px" font-weight="900" class="fill-neutral-550 dark:fill-neutral-450 tracking-wider font-sans uppercase leading-none">${labelAbbrev}</text>
         <circle cx="${px}" cy="${py}" r="11" fill="${entity.color}" class="stroke-black dark:stroke-white" stroke="currentColor" stroke-width="1.5" />

@@ -1623,12 +1623,23 @@ const conjunctionCache = {};
 
 function predictConjunction(bodyStr, startFromDate, activeSubject, isZenith) {
   if (!activeSubject) return null;
+
+  // Clean, high-performance daily cache key
+  const dayTimestamp = Date.UTC(
+    startFromDate.getUTCFullYear(),
+    startFromDate.getUTCMonth(),
+    startFromDate.getUTCDate()
+  );
+  const cacheKey = `${bodyStr}_${dayTimestamp}_${activeSubject.id}_${isZenith}`;
+  if (conjunctionCache[cacheKey]) {
+    return conjunctionCache[cacheKey];
+  }
+
   const targetLat = isZenith ? activeSubject.lat : -activeSubject.lat;
 
   const startMs = startFromDate.getTime();
 
-  // We can't really cache effectively with a dynamic startFromDate unless we key by startFromDate day,
-  // but running it takes very few ms, so we just run it. We look forward 366 days.
+  // We look forward 366 days.
   const dayOffsets = 366;
   const decCache = [];
 
@@ -1709,8 +1720,6 @@ function predictConjunction(bodyStr, startFromDate, activeSubject, isZenith) {
       if (diff > 180) diff = 360 - diff; // normalize
 
       if (diff < minDiffH) {
-        // If we are evaluating the exact very first hour and it's behind startFromDate, we skip?
-        // Wait, we want the final date to be STRICTLY > startFromDate.
         if (testDate.getTime() >= startMs) {
           minDiffH = diff;
           bestHourOffset = h;
@@ -1752,22 +1761,39 @@ function predictConjunction(bodyStr, startFromDate, activeSubject, isZenith) {
   // it means the true transit happened BEFORE startMs today, and we just picked the boundary.
   // In that case, we should find the next event by skipping 24 hours ahead.
   if (minDiffM > 15) {
-    return predictConjunction(
+    const nextResult = predictConjunction(
       bodyStr,
       new Date(startMs + 24 * 3600 * 1000),
       activeSubject,
       isZenith,
     );
+    conjunctionCache[cacheKey] = nextResult;
+    return nextResult;
   }
 
+  conjunctionCache[cacheKey] = finalDate;
   return finalDate;
 }
+
+let bodyStatsUpdateTick = 0;
 
 function updateBodyStats() {
   const activeSubject =
     state.subjects.find((s) => s.id === state.selectedSubjectId) ||
     state.subjects[0];
   const reqConfig = { zodiac: state.zodiacConfig, coord: state.coordConfig };
+
+  // Skip intensive text card DOM updates during rapid playback to maximize FPS and prevent layout thrashing
+  const isFastPlayback = state.timeMachineEnabled && state.isPlaying;
+  if (isFastPlayback) {
+    bodyStatsUpdateTick++;
+    if (bodyStatsUpdateTick % 5 !== 0) {
+      if (typeof updateSubjectStats === "function") {
+        updateSubjectStats();
+      }
+      return;
+    }
+  }
 
   BODIES.forEach((b) => {
     const infoDiv = document.querySelector(`#body-card-${b.id} .body-info`);
@@ -1900,6 +1926,61 @@ function initAspectsConfig() {
   const formPanel = document.getElementById("add-aspect-form-panel");
   const form = document.getElementById("add-aspect-form");
   const saveBtn = document.getElementById("save-aspect-btn");
+
+
+
+  // Redesigned HEX Color Picker Controls Sync
+  const colorInput = document.getElementById("new-aspect-color");
+  const colorPicker = document.getElementById("new-aspect-color-picker");
+  const swatch = document.getElementById("color-preview-swatch");
+  if (colorInput && colorPicker && swatch) {
+    const updateColorUI = (val) => {
+      let hex = val.toUpperCase();
+      if (hex && !hex.startsWith("#")) {
+        hex = "#" + hex;
+      }
+      if (/^#[0-9A-F]{6}$/i.test(hex)) {
+        swatch.style.backgroundColor = hex;
+        colorPicker.value = hex.toLowerCase();
+      }
+    };
+
+    colorInput.addEventListener("input", (e) => {
+      let val = e.target.value;
+      if (val && !val.startsWith("#")) {
+        val = "#" + val;
+        e.target.value = val;
+      }
+      updateColorUI(val);
+    });
+
+    colorPicker.addEventListener("input", (e) => {
+      colorInput.value = e.target.value.toUpperCase();
+    });
+
+    const descriptorColor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    Object.defineProperty(colorInput, "value", {
+      get() {
+        return descriptorColor.get.call(this);
+      },
+      set(val) {
+        descriptorColor.set.call(this, val);
+        updateColorUI(val);
+      },
+      configurable: true
+    });
+
+    if (form) {
+      form.addEventListener("reset", () => {
+        setTimeout(() => {
+          updateColorUI("#06B6D4");
+        }, 0);
+      });
+    }
+
+    // Initial sync
+    updateColorUI(colorInput.value || "#06B6D4");
+  }
 
   if (addBtn && formPanel) {
     addBtn.addEventListener("click", () => {

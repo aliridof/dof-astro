@@ -76,6 +76,45 @@ const BODY_MAP = {
   Pluto: 9,
 };
 
+function getSiriusCoords(date) {
+  // Base location at epoch J2000.0 (January 1, 2000, 12:00 UTC)
+  const ra0 = 6.752477 * 15; // 101.287155 degrees
+  const dec0 = -16.716116;   // -16.716116 degrees
+
+  if (!swe) return { raHours: ra0 / 15, raDeg: ra0, dec: dec0 };
+
+  const jd = getJD(date);
+  // Calculate Julian Years since J2000.0
+  const Y = (jd - 2451545.0) / 365.25;
+
+  // Proper Motion constants (milliarcseconds/year to degrees/year):
+  const pmRaCosDecDeg = -546.01 / 3600000;
+  const pmDecDeg = -1223.07 / 3600000;
+
+  // Precession rates (IAU 1976 constants in degrees per year)
+  const m = 0.01281233;
+  const n = 0.00556754;
+
+  const raRad0 = (ra0 * Math.PI) / 180;
+  const decRad0 = (dec0 * Math.PI) / 180;
+  
+  // Rate of change in RA and Dec per year due to precession:
+  const precessionRaRate = m + n * Math.sin(raRad0) * Math.tan(decRad0);
+  const precessionDecRate = n * Math.cos(raRad0);
+
+  // Combine corrections
+  let raDeg = ra0 + (precessionRaRate + (pmRaCosDecDeg / Math.cos(decRad0))) * Y;
+  let dec = dec0 + (precessionDecRate + pmDecDeg) * Y;
+
+  raDeg = ((raDeg % 360) + 360) % 360;
+
+  return {
+    raHours: raDeg / 15,
+    raDeg: raDeg,
+    dec: dec
+  };
+}
+
 function getJD(date) {
   return swe.julday(
     date.getUTCFullYear(),
@@ -93,9 +132,8 @@ function getSubPoint(bodyStr, date) {
     if (!swe) return [0, 0];
 
     if (bodyStr === "Sirius") {
-      const raHours = 6.7525;
-      const dec = -16.7161;
-      return getSubPointFromRA(raHours, dec, date);
+      const coords = getSiriusCoords(date);
+      return getSubPointFromRA(coords.raHours, coords.dec, date);
     }
 
     const jd = getJD(date);
@@ -226,37 +264,144 @@ function getZodiac(lon, config) {
   return ZODIAC_NAMES[idx];
 }
 
+const bodyStatsCache = new Map();
+
 function getBodyStats(bodyStr, date, activeSubject, reqConfig) {
   if (!swe) return null;
-  const jd = getJD(date);
-  const config = reqConfig || {};
+  
+  const cacheKey = `${bodyStr}_${date.getTime()}_${activeSubject ? activeSubject.id : "null"}_${reqConfig ? JSON.stringify(reqConfig) : "null"}`;
+  if (bodyStatsCache.has(cacheKey)) {
+    return bodyStatsCache.get(cacheKey);
+  }
 
-  if (bodyStr === "Sirius") {
-    const raDeg = 6.7525 * 15;
-    const dec = -16.7161;
+  const calculateResult = () => {
+    const jd = getJD(date);
+    const config = reqConfig || {};
 
-    const Ob = (23.4392911 * Math.PI) / 180;
-    const raRad = (raDeg * Math.PI) / 180;
-    const decRad = (dec * Math.PI) / 180;
+    if (bodyStr === "Sirius") {
+      const coords = getSiriusCoords(date);
+      const raDeg = coords.raDeg;
+      const dec = coords.dec;
 
-    const y =
-      Math.sin(raRad) * Math.cos(decRad) * Math.cos(Ob) +
-      Math.sin(decRad) * Math.sin(Ob);
-    const x = Math.cos(raRad) * Math.cos(decRad);
+      const Ob = (23.4392911 * Math.PI) / 180;
+      const raRad = (raDeg * Math.PI) / 180;
+      const decRad = (dec * Math.PI) / 180;
 
-    let lon = (Math.atan2(y, x) * 180) / Math.PI;
-    lon = ((lon % 360) + 360) % 360;
+      const y =
+        Math.sin(raRad) * Math.cos(decRad) * Math.cos(Ob) +
+        Math.sin(decRad) * Math.sin(Ob);
+      const x = Math.cos(raRad) * Math.cos(decRad);
 
-    let lat =
-      (Math.asin(
-        Math.sin(decRad) * Math.cos(Ob) -
-          Math.cos(decRad) * Math.sin(Ob) * Math.sin(raRad),
-      ) *
-        180) /
-      Math.PI;
+      let lon = (Math.atan2(y, x) * 180) / Math.PI;
+      lon = ((lon % 360) + 360) % 360;
 
-    const distAU = 543137;
-    const speedLon = 0.0;
+      let lat =
+        (Math.asin(
+          Math.sin(decRad) * Math.cos(Ob) -
+            Math.cos(decRad) * Math.sin(Ob) * Math.sin(raRad),
+        ) *
+          180) /
+        Math.PI;
+
+      const distAU = 543137;
+      const speedLon = 0.0;
+
+      let zodiacName = getZodiac(lon, config.zodiac);
+
+      const gstHours = swe.sidtime(jd);
+      const gstDeg = gstHours * 15;
+
+      let subLon = raDeg - gstDeg;
+      subLon = ((subLon % 360) + 360) % 360;
+      if (subLon > 180) subLon -= 360;
+      let subLat = dec;
+
+      let az = 0,
+        alt = 0,
+        hourAngle = 0;
+      if (activeSubject) {
+        let lstDeg = (gstDeg + activeSubject.lng) % 360;
+        let haDeg = lstDeg - raDeg;
+        haDeg = ((haDeg % 360) + 360) % 360;
+        if (haDeg > 180) haDeg -= 360;
+        hourAngle = haDeg;
+
+        let H = (haDeg * Math.PI) / 180;
+        let pLat = (activeSubject.lat * Math.PI) / 180;
+        let objDec = (dec * Math.PI) / 180;
+
+        let sinAlt =
+          Math.sin(pLat) * Math.sin(objDec) +
+          Math.cos(pLat) * Math.cos(objDec) * Math.cos(H);
+        alt = (Math.asin(Math.max(-1, Math.min(1, sinAlt))) * 180) / Math.PI;
+
+        let cosAz =
+          (Math.sin(objDec) - Math.sin(pLat) * sinAlt) /
+          (Math.cos(pLat) * Math.cos(Math.asin(sinAlt)));
+        let sinAz =
+          (-Math.sin(H) * Math.cos(objDec)) / Math.cos(Math.asin(sinAlt));
+
+        az = (Math.atan2(sinAz, cosAz) * 180) / Math.PI;
+        if (az < 0) az += 360;
+      }
+
+      return {
+        subLat,
+        subLon,
+        az,
+        alt,
+        ra: raDeg / 15,
+        dec,
+        lon,
+        lat,
+        zodiacName,
+        hourAngle,
+        distAU,
+        speed: speedLon,
+        gerak: "Direct",
+      };
+    }
+
+    const body = BODY_MAP[bodyStr];
+    if (body === undefined) return null;
+
+    let centerFlag = 0;
+    if (config.coord === "Toposentris") {
+      centerFlag = swe.SEFLG_TOPOCTR;
+      if (activeSubject && swe.set_topo) {
+        swe.set_topo(
+          activeSubject.lng,
+          activeSubject.lat,
+          activeSubject.elevation || 0,
+        );
+      }
+    } else if (config.coord === "Heliosentris") {
+      centerFlag = swe.SEFLG_HELCTR;
+    }
+
+    let siderealFlag = 0;
+    if (config.zodiac === "Sidereal") {
+      siderealFlag = swe.SEFLG_SIDEREAL;
+      if (swe.set_sid_mode) swe.set_sid_mode(swe.SE_SIDM_LAHIRI, 0, 0);
+    }
+
+    const eclFlags =
+      swe.SEFLG_SWIEPH | swe.SEFLG_SPEED | centerFlag | siderealFlag;
+    const ecl = swe.calc_ut(jd, body, eclFlags);
+    let lon = ecl[0] || 0;
+    let lat = ecl[1] || 0;
+    let distAU = ecl[2] || 0;
+    let speedLon = ecl[3] || 0;
+
+    const eqFlags =
+      swe.SEFLG_SWIEPH |
+      swe.SEFLG_SPEED |
+      swe.SEFLG_EQUATORIAL |
+      centerFlag |
+      siderealFlag;
+    const eq = swe.calc_ut(jd, body, eqFlags);
+    let raDeg = eq[0] || 0;
+    let dec = eq[1] || 0;
 
     let zodiacName = getZodiac(lon, config.zodiac);
 
@@ -290,8 +435,7 @@ function getBodyStats(bodyStr, date, activeSubject, reqConfig) {
       let cosAz =
         (Math.sin(objDec) - Math.sin(pLat) * sinAlt) /
         (Math.cos(pLat) * Math.cos(Math.asin(sinAlt)));
-      let sinAz =
-        (-Math.sin(H) * Math.cos(objDec)) / Math.cos(Math.asin(sinAlt));
+      let sinAz = (-Math.sin(H) * Math.cos(objDec)) / Math.cos(Math.asin(sinAlt));
 
       az = (Math.atan2(sinAz, cosAz) * 180) / Math.PI;
       if (az < 0) az += 360;
@@ -310,104 +454,20 @@ function getBodyStats(bodyStr, date, activeSubject, reqConfig) {
       hourAngle,
       distAU,
       speed: speedLon,
-      gerak: "Direct",
+      gerak: speedLon > 0 ? "Direct" : speedLon < 0 ? "Retrograde" : "Stationary",
     };
-  }
-
-  const body = BODY_MAP[bodyStr];
-  if (body === undefined) return null;
-
-  let centerFlag = 0;
-  if (config.coord === "Toposentris") {
-    centerFlag = swe.SEFLG_TOPOCTR;
-    if (activeSubject && swe.set_topo) {
-      swe.set_topo(
-        activeSubject.lng,
-        activeSubject.lat,
-        activeSubject.elevation || 0,
-      );
-    }
-  } else if (config.coord === "Heliosentris") {
-    centerFlag = swe.SEFLG_HELCTR;
-  }
-
-  let siderealFlag = 0;
-  if (config.zodiac === "Sidereal") {
-    siderealFlag = swe.SEFLG_SIDEREAL;
-    if (swe.set_sid_mode) swe.set_sid_mode(swe.SE_SIDM_LAHIRI, 0, 0);
-  }
-
-  const eclFlags =
-    swe.SEFLG_SWIEPH | swe.SEFLG_SPEED | centerFlag | siderealFlag;
-  const ecl = swe.calc_ut(jd, body, eclFlags);
-  let lon = ecl[0] || 0;
-  let lat = ecl[1] || 0;
-  let distAU = ecl[2] || 0;
-  let speedLon = ecl[3] || 0;
-
-  const eqFlags =
-    swe.SEFLG_SWIEPH |
-    swe.SEFLG_SPEED |
-    swe.SEFLG_EQUATORIAL |
-    centerFlag |
-    siderealFlag;
-  const eq = swe.calc_ut(jd, body, eqFlags);
-  let raDeg = eq[0] || 0;
-  let dec = eq[1] || 0;
-
-  let zodiacName = getZodiac(lon, config.zodiac);
-
-  const gstHours = swe.sidtime(jd);
-  const gstDeg = gstHours * 15;
-
-  let subLon = raDeg - gstDeg;
-  subLon = ((subLon % 360) + 360) % 360;
-  if (subLon > 180) subLon -= 360;
-  let subLat = dec;
-
-  let az = 0,
-    alt = 0,
-    hourAngle = 0;
-  if (activeSubject) {
-    let lstDeg = (gstDeg + activeSubject.lng) % 360;
-    let haDeg = lstDeg - raDeg;
-    haDeg = ((haDeg % 360) + 360) % 360;
-    if (haDeg > 180) haDeg -= 360;
-    hourAngle = haDeg;
-
-    let H = (haDeg * Math.PI) / 180;
-    let pLat = (activeSubject.lat * Math.PI) / 180;
-    let objDec = (dec * Math.PI) / 180;
-
-    let sinAlt =
-      Math.sin(pLat) * Math.sin(objDec) +
-      Math.cos(pLat) * Math.cos(objDec) * Math.cos(H);
-    alt = (Math.asin(Math.max(-1, Math.min(1, sinAlt))) * 180) / Math.PI;
-
-    let cosAz =
-      (Math.sin(objDec) - Math.sin(pLat) * sinAlt) /
-      (Math.cos(pLat) * Math.cos(Math.asin(sinAlt)));
-    let sinAz = (-Math.sin(H) * Math.cos(objDec)) / Math.cos(Math.asin(sinAlt));
-
-    az = (Math.atan2(sinAz, cosAz) * 180) / Math.PI;
-    if (az < 0) az += 360;
-  }
-
-  return {
-    subLat,
-    subLon,
-    az,
-    alt,
-    ra: raDeg / 15,
-    dec,
-    lon,
-    lat,
-    zodiacName,
-    hourAngle,
-    distAU,
-    speed: speedLon,
-    gerak: speedLon > 0 ? "Direct" : speedLon < 0 ? "Retrograde" : "Stationary",
   };
+
+  const res = calculateResult();
+  
+  if (res) {
+    if (bodyStatsCache.size > 2000) {
+      bodyStatsCache.delete(bodyStatsCache.keys().next().value);
+    }
+    bodyStatsCache.set(cacheKey, res);
+  }
+  
+  return res;
 }
 
 const pathCache = new Map();

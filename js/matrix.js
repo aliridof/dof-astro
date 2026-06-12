@@ -1,10 +1,10 @@
 // js/matrix.js
 
 const ABBREVIATIONS = {
-  "subject-terrestrial-zenith": "TZ",
-  "subject-terrestrial-nadir": "TN",
-  "subject-celestial-zenith": "CZ",
-  "subject-celestial-nadir": "CN",
+  "terrestrial-zenith": "TZ",
+  "terrestrial-nadir": "TN",
+  "celestial-zenith": "CZ",
+  "celestial-nadir": "CN",
   Sun: "SOL",
   Moon: "LUN",
   Mercury: "MER",
@@ -616,24 +616,4 @@ function updateMatrixCells(matrixType, tableElement) {
       cell.classList.add("flash-update");
     }
   });
-
-  // Render indicators
-  let containerId;
-  if (matrixType === "MATRIX") containerId = "general-indicator-container";
-  else if (matrixType === "ZENITH") containerId = "zenith-indicator-container";
-  else if (matrixType === "NADIR") containerId = "nadir-indicator-container";
-
-  if (containerId) {
-    const container = document.getElementById(containerId);
-    if (container && typeof analyzeMatrixIndicators === "function") {
-      const indicatorsHtml = analyzeMatrixIndicators(
-        matrixType,
-        items,
-        state.customDate,
-      );
-      if (container.innerHTML !== indicatorsHtml) {
-        container.innerHTML = indicatorsHtml;
-      }
-    }
-  }
 }

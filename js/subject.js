@@ -212,10 +212,10 @@ function updateSubjectStats() {
     reqConfig,
   );
   const czInfo = document.querySelector(
-    "#celestial-card-subject-celestial-zenith .celestial-info",
+    "#celestial-card-celestial-zenith .celestial-info",
   );
   if (czInfo && !czInfo.classList.contains("hidden") && statsCZ) {
-    renderCardStats("stats-subject-celestial-zenith", statsCZ);
+    renderCardStats("stats-celestial-zenith", statsCZ);
   }
 
   // CN (Celestial Nadir)
@@ -227,10 +227,10 @@ function updateSubjectStats() {
     reqConfig,
   );
   const cnInfo = document.querySelector(
-    "#celestial-card-subject-celestial-nadir .celestial-info",
+    "#celestial-card-celestial-nadir .celestial-info",
   );
   if (cnInfo && !cnInfo.classList.contains("hidden") && statsCN) {
-    renderCardStats("stats-subject-celestial-nadir", statsCN);
+    renderCardStats("stats-celestial-nadir", statsCN);
   }
 
   // TZ (Terrestrial Zenith)
@@ -241,10 +241,10 @@ function updateSubjectStats() {
     reqConfig,
   );
   const tzInfo = document.querySelector(
-    "#terrestrial-card-subject-terrestrial-zenith .terrestrial-info",
+    "#terrestrial-card-terrestrial-zenith .terrestrial-info",
   );
   if (tzInfo && !tzInfo.classList.contains("hidden") && statsTZ) {
-    renderCardStats("stats-subject-terrestrial-zenith", statsTZ);
+    renderCardStats("stats-terrestrial-zenith", statsTZ);
   }
 
   // TN (Terrestrial Nadir)
@@ -255,9 +255,9 @@ function updateSubjectStats() {
     reqConfig,
   );
   const tnInfo = document.querySelector(
-    "#terrestrial-card-subject-terrestrial-nadir .terrestrial-info",
+    "#terrestrial-card-terrestrial-nadir .terrestrial-info",
   );
   if (tnInfo && !tnInfo.classList.contains("hidden") && statsTN) {
-    renderCardStats("stats-subject-terrestrial-nadir", statsTN);
+    renderCardStats("stats-terrestrial-nadir", statsTN);
   }
 }
